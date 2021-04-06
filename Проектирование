@@ -1,18 +1,44 @@
-1. Продумать классы, предметную область, свойства, данные, их взаимодействие
-2. Еще не успел доделать немного классы зданий, но основное есть.
+Задача: Продумать классы, предметную область, свойства, данные, их взаимодействие
 
-*Можно подумать над использованием графа для выбора бандитами наилучших зданий в городе. Например, бандиты могут ограбить только 3 соседних (или не соседних) здания и надо выбрать лучшие
+*Можно подумать над использованием графа для выбора бандитами наилучших зданий в городе. Например, бандиты могут ограбить только 3 соседних (или не соседних) здания и надо выбрать 
+лучшие.
+
 Классы:
-*не успел добавить деньги. При создании здания уходят деньги. Класс здания содержит стоимость и деньги, который приносит раз в некоторое время. BudgetWeakness определяет процент денег, которые забирут грабители из бюджета.
-•	GameSetting – класс всей игры. Содержит двумерный массив Building[,] map всех клеток игры. Каждая клетка является наследником Entity. Если на клетке ничего нет, то null. 
-Есть поле int sheriffs – значение варьируется от 0 до 2. Если значение == 2, то нельзя строить SheriffsHouse.
-Имеет поля AttackTimer и NewCitizienTimer, от которых зависит время атаки / время появление нового жителя.
-Имеет поле Citiziens citiziens.
+  
+•	GameSetting – класс всей игры. Содержит двумерный массив Building[,] map всех клеток игры. Если на клетке ничего нет, то null. 
+  Есть поле int sheriffs – значение варьируется от 0 до 2. Если значение == 2, то нельзя строить SheriffsHouse.
+  Имеет свойство int Money, имеющее get {return money}, где money - приватное int поле класса. Имеет приватное поле int IncomeMoney, определяющее доход за PayTimer.
+  Имеет поля AttackTimer и NewCitizienTimer (зависит от happiness зданий), от которых зависит время атаки / время появление нового жителя. Имеет поле int PayTimer, в котором задан 
+  неизменяемый промежуток времени, через который прибавляются деньги в money.
+  Имеет поле Citiziens citiziens.
+  
+•	Citiziens – класс жителей. Имеет поле HashSet<int> citiziens, хранящий id всех жителей. Имеет поле int citiziensLimit, определяющий максимальный размер citiziens. По умолчанию 
+  citiziensLimit = 4, citiziens содержит 1 жителя с id = 0.
+  Имеет методы Add(int id), добавляющий жителя; Remove(int id), удаляющий жителя; Increase(int number), увеличивающий citiziensLimit.
+  
+•	Bandits – Имеет поле Building[] buildings. В конструкторе задается размер buildings = 3 – sheriffs (sheriffs хранится в GameSetting). Имеет метод FindBuildings – ищет оптимальные 
+  здания для грабежа (чем больше BudgetWeakness, тем лучше), FindWay - выстраивает оптимальный маршрут по зданиям из buildings, Raid - проходит по всем зданиям из buildings, 
+  уничтожает жителя, являющегося Worker в здании (или половину жителей в LivingHouse), отнимает Sum(BudgetWeakness) * Money / 100 денег (sum - сумма всех BudgetWeakness 
+  в зданиях для рейда).
+  
+•	Building – Имеет поля int Happiness (обозначает время появления нового жителя), int Worker, int BudgetWeakness (измеряется в %), (int,int) Location, int IncomeMoney 
+  (увеличивает IncomeMoney в GameSetting). Если Worker < 0, то работника в здании нет. Happiness может быть любого знака.  BudgetWeakness >= 0 и IncomeMoney >= 0 всегда. В конструкторе 
+  задаются все эти параметры (Location = индексу в массиве map). Имеет виртуальный метод AddWorker(int id), добавляющего жителя как работника, и прибавляющего IncomeMoney в 
+  IncomeMoney класса GameSetting; виртуальный метод RemoveWorker(), удаляющего жителя с поста Worker и вычитающего IncomeMoney из класса GameSetting, если Worker > 0.
+  Имеет виртуальный метод Delete(), который по умолчанию заменяет в map ссылку на null, вызывает RemoveWorker() и вычитает из поля NewCitizienTimer GameSetting текущий Happiness. 
+  
+• LivingHouse - класс жилого дома, наследует Building. Имеет константу для всех объектов класса int LivingPlaces = 4. Имеет поле int[] livers, в котором хранятся все id жителей.
+  Переопределяет Delete(): заменяет в map ссылку на null, вызывает RemoveWorker() и вычитает из поля NewCitizienTimer GameSetting текущий Happiness, вычитает 4 из citiziensLimit
+  и вызывает Citiziens.Remove для каждого liver.
 
-•	Entity – общий класс для всех «живых», взаимодействующих с миром сущностей. Имеет конструктор Entity, в который принимается координата клетки на map. Содержит публичное поле Location, имеет метод Delete для удаления с карты (превращает клетку Location в null). 
-•	Citiziens – класс жителей. Имеет поле HashSet<int> citiziens, хранящий id всех жителей. Имеет поле int citiziensLimit, определяющий максимальный размер citiziens. По умолчанию citiziensLimit = 4, citiziens содержит 1 жителя с id = 0.
-Имеет методы Add(int id), добавляющий жителя; Remove(int id), удаляющий жителя; Increase(int number), увеличивающий citiziensLimit.
-•	Bandits – наследует Entity. Имеет поле Building[] buildings. В конструкторе задается размер buildings = 3 – sheriffs (sheriffs хранится в GameSetting). Имеет метод FindBuildings – ищет оптимальные здания для грабежа, FindWay - выстраивает оптимальный маршрут по зданиям из buildings.
-•	Building – наследует Entity. Имеет поля int Happiness (обозначает время появления нового жителя), int Worker, int BudgetWeakness (измеряется в %), (int,int) Location. Если Worker < 0, то работника в здании нет. Happiness может быть любого знака.  BudgetWeakness >= 0 всегда. В конструкторе задаются все эти параметры (Location = индексу в массиве map). Имеет виртуальный метод Delete(), который по умолчанию заменяет в map ссылку на null и вычитает из поля NewCitizienTimer GameSetting текущий Happiness. 
+• Shop - наследует Building
 
-Будут классы LivingHouse (переопределяет delete), SheriffsHouse (переопределяет delete), Shop, Saloon, Jail, RailroadStation, который наследуют Building. 
+• Saloon - наследует Building
+
+• Jail - наследует Building. Имеет константу для всех объектов типа Jail, которая увеличивает AttackTimer. Переопределяет AddWorker и RemoveWorker на изменение AttackTimer вместо 
+  IncomeMoney.
+
+• RailroadStation - наследует Building. Имеет константу для всех объектов типа RailroadStation, которая уменьшает NewCitizienTimer. Переопределяет AddWorker и RemoveWorker на 
+  изменение NewCitizienTimer вместо IncomeMoney.
+  
+• SheriffsHouse - наследует Building. Переопределяет AddWorker и RemoveWorker на изменение sheriffs в классе GameSetting вместо IncomeMoney.
