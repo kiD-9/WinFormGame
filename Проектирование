@@ -14,7 +14,7 @@
   Имеет поле HashSet<int> citiziens, хранящий id всех жителей. По умолчанию содержит 1 жителя с id = 0.
   Имеет методы AddCitizien(int id), добавляющий жителя; RemoveCitizien(int id), удаляющий жителя; ChangeCitizienLimit(int number), изменяющий citiziensLimit.
   
-•	Bandits – Имеет поле Building[] buildings. В конструкторе задается размер buildings = 3 – sheriffs (sheriffs хранится в GameSetting). Имеет метод FindBuildings – ищет оптимальные 
+•	Bandits – Имеет поле Building[] buildingsToRaid. В конструкторе задается размер buildings = 3 – sheriffs (sheriffs хранится в GameSetting). Имеет метод FindBuildings – ищет оптимальные 
   здания для грабежа (чем больше BudgetWeakness, тем лучше), FindWay - выстраивает оптимальный маршрут по зданиям из buildings, Raid - проходит по всем зданиям из buildings, 
   уничтожает жителя, являющегося Worker в здании (или половину жителей в LivingHouse), отнимает Sum(BudgetWeakness) * Money / 100 денег (sum - сумма всех BudgetWeakness 
   в зданиях для рейда).
