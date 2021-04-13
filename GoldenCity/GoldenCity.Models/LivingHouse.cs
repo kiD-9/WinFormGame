@@ -19,6 +19,8 @@ namespace GoldenCity.Models
         
         public bool HavePlace { get; private set; }
 
+        public int this[int index] => livers[index];
+
         public void AddLiver(int liverId)
         {
             if (!HavePlace)
