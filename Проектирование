@@ -14,15 +14,15 @@
   Имеет поле HashSet<int> citiziens, хранящий id всех жителей. По умолчанию содержит 1 жителя с id = 0.
   Имеет методы AddCitizien(int id), добавляющий жителя; RemoveCitizien(int id), удаляющий жителя; ChangeCitizienLimit(int number), изменяющий citiziensLimit.
   
-•	Bandits – Имеет поле Building[] buildings. В конструкторе задается размер buildings = 3 – sheriffs (sheriffs хранится в GameSetting). Имеет метод FindBuildings – ищет оптимальные 
+•	Bandits – Имеет поле Building[] buildingsToRaid. В конструкторе задается размер buildings = 3 – sheriffs (sheriffs хранится в GameSetting). Имеет метод FindBuildings – ищет оптимальные 
   здания для грабежа (чем больше BudgetWeakness, тем лучше), FindWay - выстраивает оптимальный маршрут по зданиям из buildings, Raid - проходит по всем зданиям из buildings, 
   уничтожает жителя, являющегося Worker в здании (или половину жителей в LivingHouse), отнимает Sum(BudgetWeakness) * Money / 100 денег (sum - сумма всех BudgetWeakness 
   в зданиях для рейда).
   
 •	Building – Имеет поля int Happiness (обозначает время появления нового жителя), int Worker, int BudgetWeakness (измеряется в %), (int,int) Location, int IncomeMoney 
-  (увеличивает IncomeMoney в GameSetting). Если Worker < 0, то работника в здании нет. Happiness может быть любого знака.  BudgetWeakness >= 0 и IncomeMoney >= 0 всегда. В конструкторе 
-  задаются все эти параметры (Location = индексу в массиве map). Имеет виртуальный метод AddWorker(int id), добавляющего жителя как работника, и прибавляющего IncomeMoney в 
-  IncomeMoney класса GameSetting; виртуальный метод RemoveWorker(), удаляющего жителя с поста Worker и вычитающего IncomeMoney из класса GameSetting, если Worker > 0.
+  (увеличивает IncomeMoney в GameSetting), int Cost. Если Worker < 0, то работника в здании нет. Happiness может быть любого знака.  BudgetWeakness >= 0 и IncomeMoney >= 0 всегда. В 
+  конструкторе задаются все эти параметры (Location = индексу в массиве map). Имеет виртуальный метод AddWorker(int id), добавляющего жителя как работника, и прибавляющего IncomeMoney
+  в IncomeMoney класса GameSetting; виртуальный метод RemoveWorker(), удаляющего жителя с поста Worker и вычитающего IncomeMoney из класса GameSetting, если Worker > 0.
   Имеет виртуальный метод Delete(), который по умолчанию заменяет в map ссылку на null, вызывает RemoveWorker() и вычитает из поля NewCitizienTimer GameSetting текущий Happiness. 
   
 • LivingHouse - класс жилого дома, наследует Building. Имеет константу для всех объектов класса int LivingPlaces = 4. Имеет поле int[] livers, в котором хранятся все id жителей. При
