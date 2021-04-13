@@ -5,13 +5,15 @@ namespace GoldenCity.Models
     public class Bandits
     {
         private Building[] buildingsToRaid;
+        private GameSetting gameSetting;
 
         public Bandits(GameSetting gameSetting)
         {
             buildingsToRaid = new Building[3 - gameSetting.Sheriffs];
+            this.gameSetting = gameSetting;
         }
 
-        public void FindBuildingsToRaid(GameSetting gameSetting) //TODO реализовать в отдельный поток
+        public void FindBuildingsToRaid() //реализовать в отдельный поток?
         {
             var currentMinBudgetWeakness = -1;
             foreach (var building in gameSetting.Map)
@@ -24,14 +26,13 @@ namespace GoldenCity.Models
             }
         }
 
-        public void Raid(GameSetting gameSetting)
+        public void Raid() //TODO реворкнуть с новыми классами
         {
            //var budgetToRaid = buildingsToRaid.Select(b => b.BudgetWeakness).Sum() * gameSetting.Money / 100;
            var budgetToRob = buildingsToRaid.Sum(b => b.BudgetWeakness) * gameSetting.Money / 100;
            gameSetting.ChangeMoney(-budgetToRob);
            foreach (var building in buildingsToRaid)
            {
-               building.RemoveWorker(gameSetting);
                gameSetting.DeleteCitizien(building.WorkerId);
            }
         }

@@ -4,10 +4,10 @@ namespace GoldenCity.Models
 {
     public class LivingHouse : Building
     {
-        private const int LivingPlaces = 4;
+        public const int LivingPlaces = 4;
         private readonly int[] livers;
 
-        public LivingHouse(int x, int y, GameSetting gameSetting) : base(x, y)
+        public LivingHouse(int x, int y) : base(x, y)
         {
             Happiness = 1;
             BudgetWeakness = 2;
@@ -15,20 +15,20 @@ namespace GoldenCity.Models
             Cost = 500;
             livers = new int[LivingPlaces] {-1, -1, -1, -1};
             HavePlace = true;
-            gameSetting.ChangeCitiziensLimit(LivingPlaces);
         }
         
         public bool HavePlace { get; private set; }
 
-        public void AddLiver(int citizienId, GameSetting gameSetting)
+        public void AddLiver(int liverId)
         {
-            if (!HavePlace || !gameSetting.IsCitizien(citizienId))
-                return;
+            if (!HavePlace)
+                return; //no place
+            
             for (var i = 0; i < LivingPlaces; i++)
             {
                 if (livers[i] < 0)
                 {
-                    livers[i] = citizienId;
+                    livers[i] = liverId;
                     break;
                 }
             }
@@ -36,29 +36,24 @@ namespace GoldenCity.Models
             HavePlace = livers.Any(l => l < 0);
         }
         
-        public void DeleteLiver(int citizienId, GameSetting gameSetting)
+        public void DeleteLiver(int liverId)
         {
-            if (!gameSetting.IsCitizien(citizienId))
-                return;
             for (var i = 0; i < LivingPlaces; i++)
             {
-                if (livers[i] == citizienId)
-                {
-                    livers[i] = -1;
-                    HavePlace = true;
-                    break;
-                }
+                if (livers[i] != liverId)
+                    continue;
+                livers[i] = -1;
+                HavePlace = true;
+                break;
             }
         }
-        
-        public override void Delete(GameSetting gameSetting)
+
+        public override void DeleteBuilding()
         {
-            base.Delete(gameSetting);
-            
-            gameSetting.ChangeCitiziensLimit(-LivingPlaces);
-            foreach (var liver in livers)
+            base.DeleteBuilding();
+            for (var i = 0; i < LivingPlaces; i++)
             {
-                gameSetting.DeleteCitizien(liver);
+                livers[i] = -1;
             }
         }
     }

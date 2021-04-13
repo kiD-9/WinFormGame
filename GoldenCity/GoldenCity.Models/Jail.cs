@@ -2,7 +2,8 @@
 {
     public class Jail : Building
     {
-        private const int AttackTimerIncreaser = 10000; //ms
+        private static int _jailWorkersCount; //ms
+        private const int TimerIncreaser = 10000; //ms
         
         public Jail(int x, int y) : base(x, y)
         {
@@ -11,28 +12,30 @@
             IncomeMoney = 0;
             Cost = 4000;
         }
+
+        public static int AttackTimerIncreaser => _jailWorkersCount * TimerIncreaser;
+
+        public override void AddWorker(int id)
+        {
+            if (id < 0)
+                return; //cant add worker
+            
+            _jailWorkersCount++;
+            base.AddWorker(id);
+        }
         
-        public override void AddWorker(int id, GameSetting gameSetting)
+        public override void RemoveWorker()
         {
-            if (gameSetting.CanBecomeWorker(id))
-                gameSetting.ChangeAttackTimer(AttackTimerIncreaser);
+            if (WorkerId >= 0)
+                _jailWorkersCount--;
             
-            base.AddWorker(id, gameSetting);
-        }
-
-        public override void RemoveWorker(GameSetting gameSetting)
-        {
-            if (gameSetting.IsWorker(WorkerId))
-                gameSetting.ChangeAttackTimer(-AttackTimerIncreaser);
-            
-            base.RemoveWorker(gameSetting);
+            base.RemoveWorker();
             
         }
 
-        public override void Delete(GameSetting gameSetting)
+        public override void DeleteBuilding()
         {
-            RemoveWorker(gameSetting);
-            gameSetting.ChangeHappiness(-Happiness);
+            RemoveWorker();
         }
     }
 }

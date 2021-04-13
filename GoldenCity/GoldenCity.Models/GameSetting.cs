@@ -35,7 +35,7 @@ namespace GoldenCity.Models
             attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
             newCitizienTimer = new Timer(AddCitizien, null, 0, newCitizienTimerInterval);
 
-            map[0, 0] = new LivingHouse(0, 0, this);
+            map[0, 0] = new LivingHouse(0, 0);
             citiziens = new Dictionary<int, (int, int)>(); //первый житель должен сам добавиться при создании, т.к. в таймере 0
             workingCitiziens = new Dictionary<int, (int, int)>();
         }
@@ -54,7 +54,7 @@ namespace GoldenCity.Models
             //attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
             //newCitizienTimer = new Timer(AddCitizien, null, 0, newCitizienTimerInterval);
 
-            map[0, 0] = new LivingHouse(0, 0, this);
+            map[0, 0] = new LivingHouse(0, 0);
             citiziens = new Dictionary<int, (int, int)>();
             workingCitiziens = new Dictionary<int, (int, int)>();
         }
@@ -64,6 +64,11 @@ namespace GoldenCity.Models
         public int AttackTimerInterval => attackTimerInterval;
         public int NewCitizienTimerInterval => newCitizienTimerInterval;
         public int Sheriffs { get; set; } //проверка на >2 в SheriffsHouse
+
+        public void StartTimers()
+        {
+            
+        }
 
         public void AddBuilding(Building building)
         {
@@ -76,12 +81,66 @@ namespace GoldenCity.Models
             map[building.Y, building.X] = building;
             ChangeHappiness(building.Happiness);
             ChangeMoney(-building.Cost);
+            
+            if (building is LivingHouse)
+            {
+                ChangeCitiziensLimit(LivingHouse.LivingPlaces);
+            }
         }
 
         public void DeleteBuilding(int x, int y)
         {
-            map[y, x].Delete(this);
+            var building = map[y, x];
+            RetireWorker(building.WorkerId);
+            ChangeHappiness(-building.Happiness);
+            
+            switch (building)
+            {
+                case LivingHouse livingHouse:
+                    ChangeCitiziensLimit(-LivingHouse.LivingPlaces);
+                    livingHouse.DeleteBuilding();
+                    break;
+                
+                case Jail jail:
+                    jail.DeleteBuilding();
+                    break;
+                
+                case SheriffsHouse sheriffsHouse:
+                    sheriffsHouse.DeleteBuilding();
+                    break;
+                
+                default:
+                    building.DeleteBuilding();
+                    break;
+            }
+            
             map[y, x] = null;
+        }
+
+        public void DeleteCitizien(int id)
+        {
+            if (!IsCitizien(id))
+                return; //not citizien
+            
+            if (IsWorker(id))
+                RetireWorker(id);
+
+            var livingHouse = map[citiziens[id].Item2, citiziens[id].Item1] as LivingHouse;
+            if (livingHouse == null)
+                throw new Exception("Living house doesn't exist");
+            
+            livingHouse.DeleteLiver(id);
+            citiziens.Remove(id);
+        }
+
+        public bool CanBecomeWorker(int id)
+        {
+            return IsCitizien(id) && !IsWorker(id);
+        }
+
+        public bool IsWorker(int id)
+        {
+            return IsCitizien(id) && workingCitiziens.ContainsKey(id);
         }
 
         public bool IsCitizien(int id)
@@ -89,39 +148,57 @@ namespace GoldenCity.Models
             return citiziens.ContainsKey(id);
         }
 
-        public void DeleteCitizien(int citizienId)
+        public void AddWorker(int id, Building building)
         {
-            RetireWorker(citizienId);
-            if (citiziens.ContainsKey(citizienId))
+            if (!CanBecomeWorker(id))
+                return; //cant become worker
+            
+            ////////////////throw new Exception("Can't become worker");
+            
+            ChangeIncomeMoney(building.IncomeMoney);
+            workingCitiziens[id] = (building.X, building.Y);
+            
+            switch (building)
             {
-                if (map[citiziens[citizienId].Item2, citiziens[citizienId].Item1] == null)
-                    throw new Exception("Living house doesn't exist");
-                (map[citiziens[citizienId].Item2, citiziens[citizienId].Item1] as LivingHouse)
-                    .DeleteLiver(citizienId, this);
-                citiziens.Remove(citizienId);
+                case Jail jail:
+                    jail.AddWorker(id);
+                    break;
+                
+                case SheriffsHouse sheriffsHouse:
+                    sheriffsHouse.AddWorker(id);
+                    break;
+                
+                default:
+                    building.AddWorker(id);
+                    break;
             }
         }
 
-        public bool CanBecomeWorker(int workerId)
+        public void RetireWorker(int id)
         {
-            return citiziens.ContainsKey(workerId) && !workingCitiziens.ContainsKey(workerId);
-        }
+            if (!IsWorker(id))
+                return; //isnt worker
+            
+            /////////////////throw new Exception("Isn't worker");
 
-        public bool IsWorker(int workerId)
-        {
-            return citiziens.ContainsKey(workerId) && workingCitiziens.ContainsKey(workerId);
-        }
-
-        public void AddWorker(int workerId, int x, int y) //x,y - workingPlace
-        {
-            if (CanBecomeWorker(workerId))
-                workingCitiziens[workerId] = (x, y);
-        }
-
-        public void RetireWorker(int workerId)
-        {
-            if (workingCitiziens.ContainsKey(workerId))
-                workingCitiziens.Remove(workerId);
+            var workingPlace = map[workingCitiziens[id].Item2, workingCitiziens[id].Item1];
+            ChangeIncomeMoney(-workingPlace.IncomeMoney);
+            workingCitiziens.Remove(id);
+            
+            switch (workingPlace)
+            {
+                case Jail jail:
+                    jail.RemoveWorker();
+                    break;
+                
+                case SheriffsHouse sheriffsHouse:
+                    sheriffsHouse.RemoveWorker();
+                    break;
+                
+                default:
+                    workingPlace.RemoveWorker();
+                    break;
+            }
         }
 
         public void ChangeCitiziensLimit(int deltaL)
@@ -176,7 +253,7 @@ namespace GoldenCity.Models
                 if (building is LivingHouse house && house.HavePlace)
                 {
                     citiziens[newCitizienId] = (building.X, building.Y);
-                    house.AddLiver(newCitizienId, this);
+                    house.AddLiver(newCitizienId);
                     break;
                 }
             }

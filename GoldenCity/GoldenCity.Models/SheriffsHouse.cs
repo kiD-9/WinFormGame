@@ -4,6 +4,7 @@ namespace GoldenCity.Models
 {
     public class SheriffsHouse : Building
     {
+        private static int _sheriffsCount;
         
         public SheriffsHouse(int x, int y) : base(x, y)
         {
@@ -13,31 +14,34 @@ namespace GoldenCity.Models
             Cost = 5000;
         }
 
-        public override void AddWorker(int id, GameSetting gameSetting)
+        public static int SheriffsCount => _sheriffsCount;
+
+        public override void AddWorker(int id)
         {
-            if (gameSetting.Sheriffs == 2)
-                throw new Exception("Can't be more than 2 sheriffs");
+            if (id < 0)
+                return; //cant add worker
+            if (_sheriffsCount == 2)
+                return; //cant be more than 2 sheriffs
             
-            if (gameSetting.CanBecomeWorker(id))
-                gameSetting.Sheriffs++;
-            
-            base.AddWorker(id, gameSetting);
+            //////////////////throw new Exception("Can't be more than 2 sheriffs");
+
+            _sheriffsCount++;
+            base.AddWorker(id);
+        
+        }
+        
+        public override void RemoveWorker()
+        {
+            if (WorkerId >= 0)
+                _sheriffsCount--;
+
+            base.RemoveWorker();
 
         }
-
-        public override void RemoveWorker(GameSetting gameSetting)
+        
+        public override void DeleteBuilding()
         {
-            if (gameSetting.IsWorker(WorkerId))
-                gameSetting.Sheriffs--;
-            
-            base.RemoveWorker(gameSetting);
-
-        }
-
-        public override void Delete(GameSetting gameSetting)
-        {
-            RemoveWorker(gameSetting);
-            gameSetting.ChangeHappiness(-Happiness);
+            RemoveWorker();
         }
     }
 }
