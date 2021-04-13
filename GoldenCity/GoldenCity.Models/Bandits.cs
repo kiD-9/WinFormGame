@@ -18,19 +18,19 @@ namespace GoldenCity.Models
             var currentMinBudgetWeakness = -1;
             foreach (var building in gameSetting.Map)
             {
-                if (building.BudgetWeakness >= currentMinBudgetWeakness)
-                {
-                    AddBuildingToRaid(building);
-                    currentMinBudgetWeakness = buildingsToRaid[0].BudgetWeakness;
-                }
+                if (building == null || building.BudgetWeakness < currentMinBudgetWeakness)
+                    continue;
+                AddBuildingToRaid(building);
+                currentMinBudgetWeakness = buildingsToRaid[0].BudgetWeakness;
             }
         }
 
         public void Raid()
         {
-           var budgetToRob = buildingsToRaid.Sum(b => b.BudgetWeakness) * gameSetting.Money / 100;
+           var budgetToRob = buildingsToRaid.Where(b => b != null).Sum(b => b.BudgetWeakness) 
+               * gameSetting.Money / 100;
            gameSetting.ChangeMoney(-budgetToRob);
-           foreach (var building in buildingsToRaid)
+           foreach (var building in buildingsToRaid.Where(b => b != null))
            {
                gameSetting.DeleteCitizien(building.WorkerId);
            }
@@ -42,11 +42,13 @@ namespace GoldenCity.Models
             
             for (var i = 1; i < buildingsToRaid.Length; i++)
             {
-                if (buildingsToRaid[i - 1].BudgetWeakness < buildingsToRaid[i].BudgetWeakness) 
-                    break;
-                var tmp = buildingsToRaid[i];
-                buildingsToRaid[i] = buildingsToRaid[i - 1];
-                buildingsToRaid[i - 1] = tmp;
+                if (buildingsToRaid[i] == null || buildingsToRaid[i - 1].BudgetWeakness >= buildingsToRaid[i].BudgetWeakness)
+                {
+                    var tmp = buildingsToRaid[i];
+                    buildingsToRaid[i] = buildingsToRaid[i - 1];
+                    if (tmp != null)
+                        buildingsToRaid[i - 1] = tmp;
+                }
             }
         }
     }

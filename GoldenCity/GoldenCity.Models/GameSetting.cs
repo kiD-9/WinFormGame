@@ -45,7 +45,7 @@ namespace GoldenCity.Models
 
         public Building[,] Map => map;
         public int Money => money;
-        private int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncreaser; //ms
+        public int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncreaser; //ms
         public int SheriffsCount { get; private set; }
 
         public void AddBuilding(Building building)
