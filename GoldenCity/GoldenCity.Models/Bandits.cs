@@ -9,7 +9,7 @@ namespace GoldenCity.Models
 
         public Bandits(GameSetting gameSetting)
         {
-            buildingsToRaid = new Building[3 - gameSetting.Sheriffs];
+            buildingsToRaid = new Building[3 - gameSetting.SheriffsCount];
             this.gameSetting = gameSetting;
         }
 

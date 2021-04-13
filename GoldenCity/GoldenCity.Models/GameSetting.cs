@@ -12,6 +12,7 @@ namespace GoldenCity.Models
         private const int PayTimerInterval = 45000; //время ms
         private Timer payTimer;
         private int attackTimerInterval; //время ms
+        private int attackTimerIntervalIncreaser;
         private Timer attackTimer;
         private int newCitizienTimerInterval; //время ms
         private Timer newCitizienTimer;
@@ -19,64 +20,45 @@ namespace GoldenCity.Models
         private int newCitizienId;
         public readonly Dictionary<int, (int,int)> citiziens; //public для возможности тестирования
         public readonly Dictionary<int, (int,int)> workingCitiziens;
+        private int jailWorkersCount;
 
-        private bool isTestNow;
-
-
-        public GameSetting(int mapSize)
-        {
-            map = new Building[mapSize, mapSize];
-            
-            attackTimerInterval = 120000; //ms
-            newCitizienTimerInterval = 45000; //ms
-            money = 4000;
-            
-            payTimer = new Timer(PayDay, null, PayTimerInterval, PayTimerInterval);
-            attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
-            newCitizienTimer = new Timer(AddCitizien, null, 0, newCitizienTimerInterval);
-
-            map[0, 0] = new LivingHouse(0, 0);
-            citiziens = new Dictionary<int, (int, int)>(); //первый житель должен сам добавиться при создании, т.к. в таймере 0
-            workingCitiziens = new Dictionary<int, (int, int)>();
-        }
+        private bool withoutTimers;
         
-        public GameSetting(int mapSize, bool isTest) //без таймеров, чтобы протестировать логику модели
+        public GameSetting(int mapSize, bool withoutTimers = false) //withoutTimer = true, чтобы протестировать логику модели без таймеров
         {
-            isTestNow = true;
+            this.withoutTimers = withoutTimers;
             
             map = new Building[mapSize, mapSize];
             
             attackTimerInterval = 10000; //ms
+            attackTimerIntervalIncreaser = 1000;
             newCitizienTimerInterval = 5000; //ms
-            money = 4000;
+            money = 4500;
 
-            //payTimer = new Timer(PayDay, null, PayTimerInterval, PayTimerInterval);
-            //attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
-            //newCitizienTimer = new Timer(AddCitizien, null, 0, newCitizienTimerInterval);
-
-            map[0, 0] = new LivingHouse(0, 0);
+            AddBuilding(new LivingHouse(0, 0)); //вычтется 500 из money
             citiziens = new Dictionary<int, (int, int)>();
             workingCitiziens = new Dictionary<int, (int, int)>();
+            
+            if (!withoutTimers)
+                StartTimers();
         }
 
         public Building[,] Map => map;
         public int Money => money;
-        public int AttackTimerInterval => attackTimerInterval;
-        public int NewCitizienTimerInterval => newCitizienTimerInterval;
-        public int Sheriffs { get; set; } //проверка на >2 в SheriffsHouse
+        private int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncreaser; //ms
+        public int SheriffsCount { get; private set; }
 
-        public void StartTimers()
+        private void StartTimers()
         {
-            
+            payTimer = new Timer(PayDay, null, PayTimerInterval, PayTimerInterval);
+            attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
+            newCitizienTimer = new Timer(AddCitizien, null, 0, newCitizienTimerInterval);
         }
 
         public void AddBuilding(Building building)
         {
             if (map[building.Y, building.X] != null || (money - building.Cost < 0))
                 throw new Exception("Can't build");
-            
-            // if (building is SheriffsHouse && Sheriffs == 2) //реализовано в классе SheriffsHouse
-            //     return;
 
             map[building.Y, building.X] = building;
             ChangeHappiness(building.Happiness);
@@ -99,14 +81,6 @@ namespace GoldenCity.Models
                 case LivingHouse livingHouse:
                     ChangeCitiziensLimit(-LivingHouse.LivingPlaces);
                     livingHouse.DeleteBuilding();
-                    break;
-                
-                case Jail jail:
-                    jail.DeleteBuilding();
-                    break;
-                
-                case SheriffsHouse sheriffsHouse:
-                    sheriffsHouse.DeleteBuilding();
                     break;
                 
                 default:
@@ -161,10 +135,14 @@ namespace GoldenCity.Models
             switch (building)
             {
                 case Jail jail:
+                    jailWorkersCount++;
                     jail.AddWorker(id);
                     break;
                 
                 case SheriffsHouse sheriffsHouse:
+                    if (SheriffsCount == 2)
+                        return; //cant be more than 2 sheriffs
+                    SheriffsCount++;
                     sheriffsHouse.AddWorker(id);
                     break;
                 
@@ -188,10 +166,12 @@ namespace GoldenCity.Models
             switch (workingPlace)
             {
                 case Jail jail:
+                    jailWorkersCount--;
                     jail.RemoveWorker();
                     break;
                 
                 case SheriffsHouse sheriffsHouse:
+                    SheriffsCount--;
                     sheriffsHouse.RemoveWorker();
                     break;
                 
@@ -218,16 +198,11 @@ namespace GoldenCity.Models
             incomeMoney += deltaM;
         }
         
-        private void PayDay(object obj)
+        public void PayDay(object obj) //должно вызываться из payTimer
         {
             ChangeMoney(incomeMoney);
         }
-        
-        public void ChangeAttackTimer(int deltaT)
-        {
-            attackTimerInterval += deltaT; //ms
-        }
-        
+
         public void ChangeHappiness(int happiness)
         {
             newCitizienTimerInterval -= happiness * 500; //ms
@@ -236,11 +211,11 @@ namespace GoldenCity.Models
         public void Attack(object obj)
         {
             var bandits = new Bandits(this);
-            bandits.FindBuildingsToRaid(this);
-            bandits.Raid(this);
+            bandits.FindBuildingsToRaid();
+            bandits.Raid();
             
-            if (!isTestNow)
-                attackTimer.Change(attackTimerInterval, attackTimerInterval); //по идее должно сработать через attackTimerInterval
+            if (!withoutTimers)
+                attackTimer.Change(AttackTimerInterval, AttackTimerInterval); //по идее должно сработать через attackTimerInterval
         }
         
         public void AddCitizien(object obj)
@@ -260,7 +235,7 @@ namespace GoldenCity.Models
 
             newCitizienId++;
             
-            if (!isTestNow)
+            if (!withoutTimers)
                 newCitizienTimer.Change(newCitizienTimerInterval, newCitizienTimerInterval); //по идее должно сработать через newCitizienTimerInterval
         }
     }
