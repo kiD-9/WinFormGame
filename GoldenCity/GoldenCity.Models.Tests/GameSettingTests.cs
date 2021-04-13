@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace GoldenCity.Models.Tests
 {
     [TestFixture]
-    public class Tests
+    public class GameSettingTests
     {
         private GameSetting gameSetting;
         
@@ -15,46 +15,7 @@ namespace GoldenCity.Models.Tests
         {
             gameSetting = new GameSetting(2, 4000, true); //без таймера для теста логики
         }
-
-        [Test]
-        public void CheckBuilding()
-        {
-            var building = new Building(0, 0);
-            building.AddWorker(-5);
-            Assert.AreEqual(-1, building.WorkerId);
-            building.AddWorker(20);
-            Assert.AreEqual(20, building.WorkerId);
-            building.RemoveWorker();
-            Assert.AreEqual(-1, building.WorkerId);
-            building.DeleteBuilding();
-            Assert.AreEqual(-1, building.WorkerId);
-        }
         
-        [Test]
-        public void CheckLivingHouse()
-        {
-            var livingHouse = new LivingHouse(0, 0);
-            for (var i = 0; i < LivingHouse.LivingPlaces; i++)
-            {
-                Assert.AreEqual(true, livingHouse.HavePlace);
-                livingHouse.AddLiver(i);
-            }
-
-            Assert.AreEqual(false, livingHouse.HavePlace);
-            for (var i = 0; i < LivingHouse.LivingPlaces; i++)
-            {
-                Assert.AreEqual(i, livingHouse[i]);
-            }
-
-            livingHouse.DeleteLiver(2);
-            Assert.AreEqual(-1, livingHouse[2]);
-            livingHouse.AddLiver(5);
-            Assert.AreEqual(5, livingHouse[2]);
-        }
-
-        
-
-
         [Test]
         public void CanBuild()
         {
@@ -81,7 +42,7 @@ namespace GoldenCity.Models.Tests
         }
 
         [Test]
-        public void NoCitiziens()
+        public void NoCitiziensWhenCreated()
         {
             Assert.AreEqual(new Dictionary<int, (int, int)>(), gameSetting.citiziens);
         }
@@ -103,7 +64,7 @@ namespace GoldenCity.Models.Tests
         }
 
         [Test]
-        public void CitizienLimitExceeded()
+        public void CheckCitizienLimitExceeded()
         {
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
@@ -154,7 +115,7 @@ namespace GoldenCity.Models.Tests
         }
 
         [Test]
-        public void AddSheriffsHouse()
+        public void CheckAddSheriffsHouse()
         {
             gameSetting.ChangeMoney(5000);
             gameSetting.AddCitizien(null);
@@ -167,7 +128,7 @@ namespace GoldenCity.Models.Tests
         }
 
         [Test]
-        public void CheckPayday() //TODO изменить incomeMoney и вызвать Payday
+        public void CheckPayday()
         {
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
@@ -181,26 +142,35 @@ namespace GoldenCity.Models.Tests
         }
 
         [Test]
-        public void CheckBandits_GameSettingAttack()
+        public void CheckAttack()
         {
-            gameSetting.ChangeMoney(2000);
+            gameSetting.ChangeMoney(7000);
             gameSetting.AddBuilding(new Shop(0,1));
             gameSetting.AddBuilding(new Shop(1, 0));
+            gameSetting.AddBuilding(new SheriffsHouse(1, 1));
 
-            for (var i = 0; i < 2; i++)
+            for (var i = 0; i < 4; i++)
             {
                 gameSetting.AddCitizien(null);
             }
 
             gameSetting.AddWorker(0, gameSetting.Map[1, 0]);
             gameSetting.AddWorker(1, gameSetting.Map[0, 1]);
+            gameSetting.AddWorker(2, gameSetting.Map[1, 1]);
+            Assert.AreEqual(1, gameSetting.SheriffsCount);
             
             Assert.AreEqual(0, gameSetting.Money);
-            gameSetting.ChangeMoney(100);
+            gameSetting.PayDay(null);
+            Assert.AreEqual(3000, gameSetting.Money);
             gameSetting.Attack(null);
-            Assert.AreEqual(68, gameSetting.Money); //68, т.к. shop+shop+livingHouse = 32%
-            Assert.AreEqual(false, gameSetting.citiziens.Any());
-            Assert.AreEqual(false, gameSetting.workingCitiziens.Any());
+            Assert.AreEqual(2100, gameSetting.Money);
+            Assert.AreEqual(1, gameSetting.workingCitiziens.Count);
+            Assert.AreEqual(2, gameSetting.Map[1, 1].WorkerId);
+            Assert.AreEqual(2, gameSetting.citiziens.Count);
+            for (var i = 2; i < 4; i++)
+            {
+                Assert.AreEqual(i, (gameSetting.Map[0, 0] as LivingHouse)[i]);
+            }
         }
     }
 }
