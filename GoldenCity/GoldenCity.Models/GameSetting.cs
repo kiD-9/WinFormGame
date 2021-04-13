@@ -23,22 +23,22 @@ namespace GoldenCity.Models
         private int jailWorkersCount;
 
         private bool withoutTimers;
-        
-        public GameSetting(int mapSize, bool withoutTimers = false) //withoutTimer = true, чтобы протестировать логику модели без таймеров
+
+        public GameSetting(int mapSize, int startMoney = 500, bool withoutTimers = false) //withoutTimer = true, чтобы протестировать логику модели без таймеров
         {
             this.withoutTimers = withoutTimers;
-            
+
             map = new Building[mapSize, mapSize];
-            
+
             attackTimerInterval = 10000; //ms
             attackTimerIntervalIncreaser = 1000;
             newCitizienTimerInterval = 5000; //ms
-            money = 4500;
+            money = startMoney + 500; //вычтется 500 из money на следующем шаге
 
             AddBuilding(new LivingHouse(0, 0)); //вычтется 500 из money
             citiziens = new Dictionary<int, (int, int)>();
             workingCitiziens = new Dictionary<int, (int, int)>();
-            
+
             if (!withoutTimers)
                 StartTimers();
         }
@@ -47,13 +47,6 @@ namespace GoldenCity.Models
         public int Money => money;
         private int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncreaser; //ms
         public int SheriffsCount { get; private set; }
-
-        private void StartTimers()
-        {
-            payTimer = new Timer(PayDay, null, PayTimerInterval, PayTimerInterval);
-            attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
-            newCitizienTimer = new Timer(AddCitizien, null, 0, newCitizienTimerInterval);
-        }
 
         public void AddBuilding(Building building)
         {
@@ -80,6 +73,10 @@ namespace GoldenCity.Models
             {
                 case LivingHouse livingHouse:
                     ChangeCitiziensLimit(-LivingHouse.LivingPlaces);
+                    for (var i = 0; i < LivingHouse.LivingPlaces; i++)
+                    {
+                        DeleteCitizien(livingHouse[i]);
+                    }
                     livingHouse.DeleteBuilding();
                     break;
                 
@@ -105,16 +102,6 @@ namespace GoldenCity.Models
             
             livingHouse.DeleteLiver(id);
             citiziens.Remove(id);
-        }
-
-        public bool CanBecomeWorker(int id)
-        {
-            return IsCitizien(id) && !IsWorker(id);
-        }
-
-        public bool IsWorker(int id)
-        {
-            return IsCitizien(id) && workingCitiziens.ContainsKey(id);
         }
 
         public bool IsCitizien(int id)
@@ -237,6 +224,23 @@ namespace GoldenCity.Models
             
             if (!withoutTimers)
                 newCitizienTimer.Change(newCitizienTimerInterval, newCitizienTimerInterval); //по идее должно сработать через newCitizienTimerInterval
+        }
+        
+        private void StartTimers()
+        {
+            payTimer = new Timer(PayDay, null, PayTimerInterval, PayTimerInterval);
+            attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
+            newCitizienTimer = new Timer(AddCitizien, null, 0, newCitizienTimerInterval);
+        }
+        
+        private bool CanBecomeWorker(int id)
+        {
+            return IsCitizien(id) && !IsWorker(id);
+        }
+
+        private bool IsWorker(int id)
+        {
+            return IsCitizien(id) && workingCitiziens.ContainsKey(id);
         }
     }
 }
