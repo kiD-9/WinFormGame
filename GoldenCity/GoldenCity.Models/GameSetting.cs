@@ -9,10 +9,12 @@ namespace GoldenCity.Models
         private Building[,] map;
         private int money;
         private int incomeMoney;
-        private int payTimerInterval; //время ms
+        private const int PayTimerInterval = 45000; //время ms
         private Timer payTimer;
-        private int attackTimer; //время ms
-        private int newCitizienTimer; //время ms
+        private int attackTimerInterval; //время ms
+        private Timer attackTimer;
+        private int newCitizienTimerInterval; //время ms
+        private Timer newCitizienTimer;
         private int citiziensLimit;
         private int newCitizienId;
         private Dictionary<int, (int,int)> citiziens;
@@ -23,31 +25,22 @@ namespace GoldenCity.Models
         {
             map = new Building[mapSize, mapSize];
             
-            //не могу понять как работает System.Threading.Timers. Но нужно как-то передать gameSetting в другой поток и вызвать PayDay()
-            //TODO создать таймеры
-            payTimerInterval = 45000;
-            payTimer = new Timer(PayDay, null, 0, payTimerInterval); //ms
-            
-            //Аналогично с PayTimer
-            attackTimer = 120000; //ms
-            newCitizienTimer = 45000; //ms
+            attackTimerInterval = 120000; //ms
+            newCitizienTimerInterval = 45000; //ms
             money = 4000;
+            
+            payTimer = new Timer(PayDay, null, PayTimerInterval, PayTimerInterval);
+            attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
+            newCitizienTimer = new Timer(AddCitizien, null, 0, newCitizienTimerInterval);
 
-            map[0, 0] = new LivingHouse(0, 0, this);//TODO
-            citiziens = new Dictionary<int, (int, int)>(); //следить за citiziensLimit и добавлять жителей по-нормальному (т.е. через таймер) => они сами добавятся в момент создания
+            map[0, 0] = new LivingHouse(0, 0, this);
+            citiziens = new Dictionary<int, (int, int)>(); //первый житель должен сам добавиться при создании, т.к. в таймере 0
             workingCitiziens = new Dictionary<int, (int, int)>();
         }
 
         public Building[,] Map => map;
         public int Money => money;
         public int Sheriffs { get; set; } //проверка на >2 в SheriffsHouse
-        public int AttackTimer => attackTimer;
-        public int NewCitizienTimer => newCitizienTimer;
-
-        public void Start()
-        {
-            // если в конструкторе создаются таймеры, то здесь не нужно добавлять срабатывание таймеров через System.Threading.Timer?     
-        }
 
         public void AddBuilding(int x, int y, Building building)
         {
@@ -68,36 +61,11 @@ namespace GoldenCity.Models
             map[y, x] = null;
         }
 
-        public void Attack() //TODO сделать срабатывание при AttackTimer
-        {
-            var bandits = new Bandits(this);
-            bandits.FindBuildingsToRaid(this);
-            bandits.Raid(this);
-        }
-
         public bool IsCitizien(int id)
         {
             return citiziens.ContainsKey(id);
         }
 
-        public void AddCitizien() //TODO сделать срабатывание при NewCitizienTimer
-        {
-            if (citiziens.Count >= citiziensLimit)
-                throw new Exception("Citiziens limit exceeded");
-            
-            foreach (var building in map)
-            {
-                if (building is LivingHouse house && house.HavePlace)
-                {
-                    house.AddLiver(newCitizienId, this);
-                    citiziens[newCitizienId] = (building.X, building.Y);
-                    break;
-                }
-            }
-
-            newCitizienId++;
-        }
-        
         public void DeleteCitizien(int citizienId)
         {
             RetireWorker(citizienId);
@@ -150,19 +118,46 @@ namespace GoldenCity.Models
             incomeMoney += deltaM;
         }
         
-        public void PayDay(object? obj) //TODO сделать срабатывание при PayTimer 
+        private void PayDay(object obj)
         {
             ChangeMoney(incomeMoney);
         }
         
-        public void ChangeAttackTimer(int deltaT) //TODO переделать, когда будет таймер
+        public void ChangeAttackTimer(int deltaT)
         {
-            attackTimer += deltaT; //ms
+            attackTimerInterval += deltaT; //ms
         }
         
-        public void ChangeHappiness(int happiness) //TODO переделать, когда будет таймер
+        public void ChangeHappiness(int happiness)
         {
-            newCitizienTimer -= happiness * 500; //ms
+            newCitizienTimerInterval -= happiness * 500; //ms
+        }
+        
+        private void Attack(object obj)
+        {
+            var bandits = new Bandits(this);
+            bandits.FindBuildingsToRaid(this);
+            bandits.Raid(this);
+            attackTimer.Change(attackTimerInterval, attackTimerInterval); //по идее должно сработать через attackTimerInterval
+        }
+        
+        private void AddCitizien(object obj)
+        {
+            if (citiziens.Count >= citiziensLimit)
+                throw new Exception("Citiziens limit exceeded");
+            
+            foreach (var building in map)
+            {
+                if (building is LivingHouse house && house.HavePlace)
+                {
+                    house.AddLiver(newCitizienId, this);
+                    citiziens[newCitizienId] = (building.X, building.Y);
+                    break;
+                }
+            }
+
+            newCitizienId++;
+            newCitizienTimer.Change(newCitizienTimerInterval, newCitizienTimerInterval); //по идее должно сработать через newCitizienTimerInterval
         }
     }
 }
