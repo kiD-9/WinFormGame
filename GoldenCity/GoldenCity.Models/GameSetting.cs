@@ -42,15 +42,15 @@ namespace GoldenCity.Models
         public int Money => money;
         public int Sheriffs { get; set; } //проверка на >2 в SheriffsHouse
 
-        public void AddBuilding(int x, int y, Building building)
+        public void AddBuilding(Building building)
         {
-            if (map[y, x] == null || (money - building.Cost < 0))
+            if (map[building.Y, building.X] == null || (money - building.Cost < 0))
                 throw new Exception("Can't build");
             
             // if (building is SheriffsHouse && Sheriffs == 2) //реализовано в классе SheriffsHouse
             //     return;
-            
-            map[y, x] = building;
+
+            map[building.Y, building.X] = building;
             ChangeHappiness(building.Happiness);
             ChangeMoney(-building.Cost);
         }
@@ -89,7 +89,7 @@ namespace GoldenCity.Models
             return citiziens.ContainsKey(workerId) && workingCitiziens.ContainsKey(workerId);
         }
 
-        public void AddWorker(int workerId, int x, int y)
+        public void AddWorker(int workerId, int x, int y) //x,y - workingPlace
         {
             if (CanBecomeWorker(workerId))
                 workingCitiziens[workerId] = (x, y);
