@@ -26,9 +26,8 @@ namespace GoldenCity.Models
             }
         }
 
-        public void Raid() //TODO реворкнуть с новыми классами
+        public void Raid()
         {
-           //var budgetToRaid = buildingsToRaid.Select(b => b.BudgetWeakness).Sum() * gameSetting.Money / 100;
            var budgetToRob = buildingsToRaid.Sum(b => b.BudgetWeakness) * gameSetting.Money / 100;
            gameSetting.ChangeMoney(-budgetToRob);
            foreach (var building in buildingsToRaid)
