@@ -38,15 +38,23 @@ namespace GoldenCity.Models
             citiziens = new Dictionary<int, (int, int)>();
             workingCitiziens = new Dictionary<int, (int, int)>();
 
-            if (!withoutTimers)
-                StartTimers();
+            // if (!withoutTimers)
+            //     Start();
         }
 
         public Building[,] Map => map;
         public int Money => money;
         public int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncreaser; //ms , public для тестирования
         public int SheriffsCount { get; private set; }
+        public int CitiziensLimit => citiziensLimit;
 
+        public void Start()
+        {
+            payTimer = new Timer(PayDay, null, PayTimerInterval, PayTimerInterval);
+            attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
+            newCitizienTimer = new Timer(AddCitizien, null, 0, newCitizienTimerInterval);
+        }
+        
         public void AddBuilding(Building building)
         {
             if (map[building.Y, building.X] != null || (money - building.Cost < 0))
@@ -223,13 +231,6 @@ namespace GoldenCity.Models
             
             if (!withoutTimers)
                 newCitizienTimer.Change(newCitizienTimerInterval, newCitizienTimerInterval); //по идее должно сработать через newCitizienTimerInterval
-        }
-        
-        private void StartTimers()
-        {
-            payTimer = new Timer(PayDay, null, PayTimerInterval, PayTimerInterval);
-            attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
-            newCitizienTimer = new Timer(AddCitizien, null, 0, newCitizienTimerInterval);
         }
         
         private bool CanBecomeWorker(int id)
