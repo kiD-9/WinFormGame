@@ -19,16 +19,16 @@ namespace GoldenCity.Models.Tests
         [Test]
         public void CanBuild()
         {
-            var shop = new Shop(0, 1);
-            gameSetting.AddBuilding(shop);
+            var store = new Store(0, 1);
+            gameSetting.AddBuilding(store);
             Assert.AreEqual(1000, gameSetting.Money);
-            Assert.AreEqual(shop, gameSetting.Map[1, 0]);
+            Assert.AreEqual(store, gameSetting.Map[1, 0]);
         }
         
         [Test]
         public void CantBuildIfNotEmptyPlace()
         {
-            var ex = Assert.Throws<Exception>(() => gameSetting.AddBuilding(new Shop(0, 0)));
+            var ex = Assert.Throws<Exception>(() => gameSetting.AddBuilding(new Store(0, 0)));
             Assert.That(ex.Message, Is.EqualTo("Can't build"));
             Assert.AreEqual(4000, gameSetting.Money);
         }
@@ -134,9 +134,9 @@ namespace GoldenCity.Models.Tests
             {
                 gameSetting.AddCitizien(null);
             }
-            var shop = new Shop(0, 1);
-            gameSetting.AddBuilding(shop);
-            gameSetting.AddWorker(0, shop);
+            var store = new Store(0, 1);
+            gameSetting.AddBuilding(store);
+            gameSetting.AddWorker(0, store);
             gameSetting.PayDay(null);
             Assert.AreEqual(2500, gameSetting.Money);
         }
@@ -145,8 +145,8 @@ namespace GoldenCity.Models.Tests
         public void CheckAttack()
         {
             gameSetting.ChangeMoney(7000);
-            gameSetting.AddBuilding(new Shop(0,1));
-            gameSetting.AddBuilding(new Shop(1, 0));
+            gameSetting.AddBuilding(new Store(0,1));
+            gameSetting.AddBuilding(new Store(1, 0));
             gameSetting.AddBuilding(new SheriffsHouse(1, 1));
 
             for (var i = 0; i < 4; i++)

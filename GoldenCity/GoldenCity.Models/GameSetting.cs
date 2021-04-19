@@ -6,6 +6,8 @@ namespace GoldenCity.Models
 {
     public class GameSetting
     {
+        public readonly Dictionary<int, (int,int)> citiziens; //public для возможности тестирования
+        public readonly Dictionary<int, (int,int)> workingCitiziens;
         private Building[,] map;
         private int money;
         private int incomeMoney;
@@ -18,10 +20,7 @@ namespace GoldenCity.Models
         private Timer newCitizienTimer;
         private int citiziensLimit;
         private int newCitizienId;
-        public readonly Dictionary<int, (int,int)> citiziens; //public для возможности тестирования
-        public readonly Dictionary<int, (int,int)> workingCitiziens;
         private int jailWorkersCount;
-
         private bool withoutTimers;
 
         public GameSetting(int mapSize, int startMoney = 500, bool withoutTimers = false) //withoutTimer = true, чтобы протестировать логику модели без таймеров
@@ -45,7 +44,7 @@ namespace GoldenCity.Models
 
         public Building[,] Map => map;
         public int Money => money;
-        public int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncreaser; //ms
+        public int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncreaser; //ms , public для тестирования
         public int SheriffsCount { get; private set; }
 
         public void AddBuilding(Building building)

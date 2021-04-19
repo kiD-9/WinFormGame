@@ -1,8 +1,8 @@
 ﻿namespace GoldenCity.Models
 {
-    public class Shop : Building
+    public class Store : Building
     {
-        public Shop(int x, int y) : base(x, y)
+        public Store(int x, int y) : base(x, y)
         {
             Happiness = 2;
             BudgetWeakness = 15;

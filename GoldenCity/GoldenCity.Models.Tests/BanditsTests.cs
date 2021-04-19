@@ -20,8 +20,8 @@ namespace GoldenCity.Models.Tests
         public void CheckAttack()
         {
             gameSetting.ChangeMoney(2000);
-            gameSetting.AddBuilding(new Shop(0,1));
-            gameSetting.AddBuilding(new Shop(1, 0));
+            gameSetting.AddBuilding(new Store(0,1));
+            gameSetting.AddBuilding(new Store(1, 0));
 
             for (var i = 0; i < 2; i++)
             {
@@ -34,7 +34,7 @@ namespace GoldenCity.Models.Tests
             Assert.AreEqual(0, gameSetting.Money);
             gameSetting.ChangeMoney(100);
             gameSetting.Attack(null);
-            Assert.AreEqual(68, gameSetting.Money); //68, т.к. shop+shop+livingHouse = 32%
+            Assert.AreEqual(68, gameSetting.Money); //68, т.к. store+store+livingHouse = 32%
             Assert.AreEqual(false, gameSetting.citiziens.Any());
             Assert.AreEqual(false, gameSetting.workingCitiziens.Any());
         }
