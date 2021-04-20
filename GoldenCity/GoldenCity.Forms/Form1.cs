@@ -19,7 +19,7 @@ namespace GoldenCity.Forms
         private int mapSize = 5;
         private GameSetting gameSetting;
         
-        public Form1()
+        public Form1() //TODO я только попробовал поотрисовывать элементы карты
         {
             DoubleBuffered = true;
             InitializeComponent();
@@ -28,6 +28,7 @@ namespace GoldenCity.Forms
             gameSetting = new GameSetting(mapSize, 10000, true);
             gameSetting.AddBuilding(new SheriffsHouse(3, 2)); //почему он не добавляется
             gameSetting.AddBuilding(new Store(1, 0));
+            gameSetting.AddBuilding(new LivingHouse(2,0));
             ClientSize = new Size(mapSize * bitmapSize, mapSize * bitmapSize + 30);
             
             var imagesDirectory = new DirectoryInfo("Resources");
@@ -48,10 +49,7 @@ namespace GoldenCity.Forms
 
         protected  override void OnPaint(PaintEventArgs e)
         {
-            foreach (Control control in Controls)
-            {
-                control.Refresh();
-            }
+            UpdateGamePropertiesPaint(); //TODO переделать костыль
             DrawBackground(e.Graphics);
             DrawBuildings(e.Graphics);
         }
@@ -63,8 +61,7 @@ namespace GoldenCity.Forms
 
         private void TimerTick(object sender, EventArgs e)
         {
-            gameSetting.ChangeIncomeMoney(100); // для проверки отрисовки добавил доход
-            gameSetting.PayDay(null);
+            gameSetting.ChangeMoney(100);// для проверки отрисовки добавил доход
             Invalidate(); //но значение почему-то не меняется и не рисуется
         }
 
@@ -83,7 +80,7 @@ namespace GoldenCity.Forms
             var counter = 0;
             foreach (var building in gameSetting.Map)
             {
-                var point = new Point(bitmapSize * (counter & mapSize), bitmapSize * (counter / mapSize) + 30);
+                var point = new Point(bitmapSize * (counter % mapSize), bitmapSize * (counter / mapSize) + 30);
                 switch (building)
                 {
                     case Jail:
@@ -115,8 +112,9 @@ namespace GoldenCity.Forms
             {
                 Location = new Point(0, 0),
                 Size = new Size(ClientSize.Width / 5, 26),
-                Text = $"Money: {gameSetting.Money}"
+                Text = $"Money: {gameSetting.Money}",
             };
+            //money.TextChanged += MoneyTextChanged; //не совсем понимаю как текст обновлять
 
             var citiziensCount = new Label
             {
@@ -124,6 +122,7 @@ namespace GoldenCity.Forms
                 Size = new Size(ClientSize.Width / 5, 26),
                 Text = $"Citiziens: {gameSetting.citiziens.Count}"
             };
+            //citiziensCount.TextChanged += CitiziensCountTextChanged;
 
             var citiziensLimit = new Label
             {
@@ -131,18 +130,47 @@ namespace GoldenCity.Forms
                 Size = new Size(ClientSize.Width / 5, 26),
                 Text = $"Citiziens Limit: {gameSetting.CitiziensLimit}"
             };
+            //citiziensLimit.TextChanged += CitiziensLimitTextChanged;
 
             var sheriffsCount = new Label
             {
                 Location = new Point(3 * ClientSize.Width / 5, 0),
                 Size = new Size(ClientSize.Width / 5, 26),
-                Text = $"Sheriffs: {gameSetting.SheriffsCount}"
+                Text = $"Sheriffs: {gameSetting.SheriffsCount}",
             };
+            //sheriffsCount.TextChanged += SheriffsCountTextChanged;
             
             Controls.Add(money);
             Controls.Add(citiziensCount);
             Controls.Add(citiziensLimit);
             Controls.Add(sheriffsCount);
         }
+
+        private void UpdateGamePropertiesPaint()
+        {
+            Controls[0].Text = $"Money: {gameSetting.Money}";
+            Controls[1].Text = $"Citiziens: {gameSetting.citiziens.Count}";
+            Controls[2].Text = $"Citiziens Limit: {gameSetting.CitiziensLimit}";
+            Controls[3].Text = $"Sheriffs: {gameSetting.SheriffsCount}";
+        }
+        // private void MoneyTextChanged(object sender, EventArgs e)
+        // {
+        //     Controls[0].Text = $"Money: {gameSetting.Money}";
+        // }
+        //
+        // private void CitiziensCountTextChanged(object sender, EventArgs e)
+        // {
+        //     Controls[1].Text = $"Citiziens: {gameSetting.citiziens.Count}";
+        // }
+        //
+        // private void CitiziensLimitTextChanged(object sender, EventArgs e)
+        // {
+        //     Controls[2].Text = $"Citiziens Limit: {gameSetting.CitiziensLimit}";
+        // }
+        //
+        // private void SheriffsCountTextChanged(object sender, EventArgs e)
+        // {
+        //     Controls[3].Text = $"Sheriffs: {gameSetting.SheriffsCount}";
+        // }
     }
 }
