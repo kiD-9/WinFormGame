@@ -28,8 +28,8 @@ namespace GoldenCity.Models.Tests
                 gameSetting.AddCitizien(null);
             }
 
-            gameSetting.AddWorker(0, gameSetting.Map[1, 0]);
-            gameSetting.AddWorker(1, gameSetting.Map[0, 1]);
+            gameSetting.AddWorker(gameSetting.Map[1, 0]);
+            gameSetting.AddWorker(gameSetting.Map[0, 1]);
             
             Assert.AreEqual(0, gameSetting.Money);
             gameSetting.ChangeMoney(100);

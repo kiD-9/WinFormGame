@@ -122,8 +122,8 @@ namespace GoldenCity.Models.Tests
             gameSetting.AddCitizien(null);
             gameSetting.AddBuilding(new SheriffsHouse(0, 1));
             Assert.AreEqual(0, gameSetting.SheriffsCount);
-            gameSetting.AddWorker(1, gameSetting.Map[1, 0]);
-            Assert.AreEqual(1, gameSetting.Map[1, 0].WorkerId);
+            gameSetting.AddWorker(gameSetting.Map[1, 0]);
+            Assert.AreEqual(0, gameSetting.Map[1, 0].WorkerId);
             Assert.AreEqual(1, gameSetting.SheriffsCount);
         }
 
@@ -136,7 +136,7 @@ namespace GoldenCity.Models.Tests
             }
             var store = new Store(0, 1);
             gameSetting.AddBuilding(store);
-            gameSetting.AddWorker(0, store);
+            gameSetting.AddWorker(store);
             gameSetting.PayDay(null);
             Assert.AreEqual(2500, gameSetting.Money);
         }
@@ -154,9 +154,9 @@ namespace GoldenCity.Models.Tests
                 gameSetting.AddCitizien(null);
             }
 
-            gameSetting.AddWorker(0, gameSetting.Map[1, 0]);
-            gameSetting.AddWorker(1, gameSetting.Map[0, 1]);
-            gameSetting.AddWorker(2, gameSetting.Map[1, 1]);
+            gameSetting.AddWorker(gameSetting.Map[1, 0]);
+            gameSetting.AddWorker(gameSetting.Map[0, 1]);
+            gameSetting.AddWorker(gameSetting.Map[1, 1]);
             Assert.AreEqual(1, gameSetting.SheriffsCount);
             
             Assert.AreEqual(0, gameSetting.Money);

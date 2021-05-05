@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace GoldenCity.Models
@@ -116,12 +117,13 @@ namespace GoldenCity.Models
             return citiziens.ContainsKey(id);
         }
 
-        public void AddWorker(int id, Building building)
+        public void AddWorker(Building building)
         {
-            if (!CanBecomeWorker(id))
-                return; //cant become worker
-            
+            if (workingCitiziens.Count == citiziens.Count)
+                return;//cant be any worker
             ////////////////throw new Exception("Can't become worker");
+            
+            var id = citiziens.Keys.First(CanBecomeWorker);
             
             ChangeIncomeMoney(building.IncomeMoney);
             workingCitiziens[id] = (building.X, building.Y);
