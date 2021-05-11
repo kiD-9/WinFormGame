@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using NUnit.Framework;
 
 namespace GoldenCity.Models.Tests
@@ -25,7 +23,7 @@ namespace GoldenCity.Models.Tests
 
             for (var i = 0; i < 2; i++)
             {
-                gameSetting.AddCitizien(null);
+                gameSetting.AddCitizen(null);
             }
 
             gameSetting.AddWorker(gameSetting.Map[1, 0]);
@@ -35,8 +33,8 @@ namespace GoldenCity.Models.Tests
             gameSetting.ChangeMoney(100);
             gameSetting.Attack(null);
             Assert.AreEqual(68, gameSetting.Money); //68, т.к. store+store+livingHouse = 32%
-            Assert.AreEqual(false, gameSetting.citiziens.Any());
-            Assert.AreEqual(false, gameSetting.workingCitiziens.Any());
+            Assert.AreEqual(false, gameSetting.citizens.Any());
+            Assert.AreEqual(false, gameSetting.workingCitizens.Any());
         }
     }
 }

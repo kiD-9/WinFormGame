@@ -4,7 +4,7 @@ namespace GoldenCity.Models
 {
     public class Bandits
     {
-        private Building[] buildingsToRaid;
+        private Building[] buildingsToRaid; //сделать path, чтобы отрисовывать маршрут отряда бандитов
         private GameSetting gameSetting;
 
         public Bandits(GameSetting gameSetting)
@@ -13,7 +13,7 @@ namespace GoldenCity.Models
             this.gameSetting = gameSetting;
         }
 
-        public void FindBuildingsToRaid() //реализовать в отдельный поток?
+        public void FindBuildingsToRaid()
         {
             var currentMinBudgetWeakness = -1;
             foreach (var building in gameSetting.Map)
@@ -32,7 +32,8 @@ namespace GoldenCity.Models
            gameSetting.ChangeMoney(-budgetToRob);
            foreach (var building in buildingsToRaid.Where(b => b != null))
            {
-               gameSetting.DeleteCitizien(building.WorkerId);
+               if (building.WorkerId >= 0)
+                   gameSetting.DeleteCitizen(building.WorkerId);
            }
         }
 

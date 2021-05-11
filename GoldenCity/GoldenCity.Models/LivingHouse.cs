@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace GoldenCity.Models
 {
@@ -24,7 +25,7 @@ namespace GoldenCity.Models
         public void AddLiver(int liverId)
         {
             if (!HavePlace)
-                return; //no place
+                throw new Exception("No space at living house");
             
             for (var i = 0; i < LivingPlaces; i++)
             {
@@ -46,8 +47,9 @@ namespace GoldenCity.Models
                     continue;
                 livers[i] = -1;
                 HavePlace = true;
-                break;
+                return;
             }
+            throw new Exception("No liver with this id");
         }
 
         public override void DeleteBuilding()

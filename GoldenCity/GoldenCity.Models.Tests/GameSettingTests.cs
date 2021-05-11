@@ -29,7 +29,7 @@ namespace GoldenCity.Models.Tests
         public void CantBuildIfNotEmptyPlace()
         {
             var ex = Assert.Throws<Exception>(() => gameSetting.AddBuilding(new Store(0, 0)));
-            Assert.That(ex.Message, Is.EqualTo("Can't build"));
+            Assert.That(ex.Message, Is.EqualTo("No space to build"));
             Assert.AreEqual(4000, gameSetting.Money);
         }
         
@@ -37,14 +37,14 @@ namespace GoldenCity.Models.Tests
         public void CantBuildIfNotEnoughMoney()
         {
             var ex = Assert.Throws<Exception>(() => gameSetting.AddBuilding(new SheriffsHouse(0, 1)));
-            Assert.That(ex.Message, Is.EqualTo("Can't build"));
+            Assert.That(ex.Message, Is.EqualTo("Not enough money to build"));
             Assert.AreEqual(4000, gameSetting.Money);
         }
 
         [Test]
         public void NoCitiziensWhenCreated()
         {
-            Assert.AreEqual(new Dictionary<int, (int, int)>(), gameSetting.citiziens);
+            Assert.AreEqual(new Dictionary<int, (int, int)>(), gameSetting.citizens);
         }
 
         [Test]
@@ -52,14 +52,14 @@ namespace GoldenCity.Models.Tests
         {
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                gameSetting.AddCitizien(null);
+                gameSetting.AddCitizen(null);
             }
 
             Assert.AreEqual(false, (gameSetting.Map[0, 0] as LivingHouse).HavePlace);
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                Assert.AreEqual((0, 0), gameSetting.citiziens[i]);
-                Assert.AreEqual(true, gameSetting.IsCitizien(i));
+                Assert.AreEqual((0, 0), gameSetting.citizens[i]);
+                Assert.AreEqual(true, gameSetting.IsCitizen(i));
             }
         }
 
@@ -68,11 +68,11 @@ namespace GoldenCity.Models.Tests
         {
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                gameSetting.AddCitizien(null);
+                gameSetting.AddCitizen(null);
             }
 
-            var ex = Assert.Throws<Exception>(() => gameSetting.AddCitizien(null));
-            Assert.That(ex.Message, Is.EqualTo("Citiziens limit exceeded"));
+            var ex = Assert.Throws<Exception>(() => gameSetting.AddCitizen(null));
+            Assert.That(ex.Message, Is.EqualTo("Citizens limit exceeded"));
         }
         
         [Test]
@@ -83,21 +83,21 @@ namespace GoldenCity.Models.Tests
 
             for (var i = 0; i < 2 * LivingHouse.LivingPlaces; i++)
             {
-                gameSetting.AddCitizien(null);
+                gameSetting.AddCitizen(null);
             }
 
             Assert.AreEqual(false, (gameSetting.Map[0, 0] as LivingHouse).HavePlace);
             Assert.AreEqual(false, (gameSetting.Map[1, 0] as LivingHouse).HavePlace);
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                Assert.AreEqual((0, 0), gameSetting.citiziens[i]);
-                Assert.AreEqual(true, gameSetting.IsCitizien(i));
+                Assert.AreEqual((0, 0), gameSetting.citizens[i]);
+                Assert.AreEqual(true, gameSetting.IsCitizen(i));
             }
 
             for (var i = LivingHouse.LivingPlaces; i < 2 * LivingHouse.LivingPlaces; i++)
             {
-                Assert.AreEqual((0, 1), gameSetting.citiziens[i]);
-                Assert.AreEqual(true, gameSetting.IsCitizien(i));
+                Assert.AreEqual((0, 1), gameSetting.citizens[i]);
+                Assert.AreEqual(true, gameSetting.IsCitizen(i));
             }
         }
 
@@ -106,20 +106,20 @@ namespace GoldenCity.Models.Tests
         {
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                gameSetting.AddCitizien(null);
+                gameSetting.AddCitizen(null);
             }
 
             gameSetting.DeleteBuilding(0, 0);
             Assert.AreEqual(null, gameSetting.Map[0, 0]);
-            Assert.AreEqual(false, gameSetting.citiziens.Any());
+            Assert.AreEqual(false, gameSetting.citizens.Any());
         }
 
         [Test]
         public void CheckAddSheriffsHouse()
         {
             gameSetting.ChangeMoney(5000);
-            gameSetting.AddCitizien(null);
-            gameSetting.AddCitizien(null);
+            gameSetting.AddCitizen(null);
+            gameSetting.AddCitizen(null);
             gameSetting.AddBuilding(new SheriffsHouse(0, 1));
             Assert.AreEqual(0, gameSetting.SheriffsCount);
             gameSetting.AddWorker(gameSetting.Map[1, 0]);
@@ -132,7 +132,7 @@ namespace GoldenCity.Models.Tests
         {
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                gameSetting.AddCitizien(null);
+                gameSetting.AddCitizen(null);
             }
             var store = new Store(0, 1);
             gameSetting.AddBuilding(store);
@@ -151,7 +151,7 @@ namespace GoldenCity.Models.Tests
 
             for (var i = 0; i < 4; i++)
             {
-                gameSetting.AddCitizien(null);
+                gameSetting.AddCitizen(null);
             }
 
             gameSetting.AddWorker(gameSetting.Map[1, 0]);
@@ -164,9 +164,9 @@ namespace GoldenCity.Models.Tests
             Assert.AreEqual(3000, gameSetting.Money);
             gameSetting.Attack(null);
             Assert.AreEqual(2100, gameSetting.Money);
-            Assert.AreEqual(1, gameSetting.workingCitiziens.Count);
+            Assert.AreEqual(1, gameSetting.workingCitizens.Count);
             Assert.AreEqual(2, gameSetting.Map[1, 1].WorkerId);
-            Assert.AreEqual(2, gameSetting.citiziens.Count);
+            Assert.AreEqual(2, gameSetting.citizens.Count);
             for (var i = 2; i < 4; i++)
             {
                 Assert.AreEqual(i, (gameSetting.Map[0, 0] as LivingHouse)[i]);

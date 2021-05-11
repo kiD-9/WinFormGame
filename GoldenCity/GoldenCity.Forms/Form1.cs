@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 using GoldenCity.Models;
+using Timer = System.Windows.Forms.Timer;
 
 namespace GoldenCity.Forms
 {
@@ -30,7 +27,7 @@ namespace GoldenCity.Forms
             ClientSize = new Size(MapSize * BitmapSize, MapSize * BitmapSize + GamePropertiesBarHeight);
             for (var i = 0; i < 4; i++)
             {
-                gameSetting.AddCitizien(null);
+                gameSetting.AddCitizen(null);
             }
 
             TakeBitmapsFromDirectory(new DirectoryInfo("Resources"));
@@ -45,61 +42,105 @@ namespace GoldenCity.Forms
             
             Click += HandleClick;
         }
+        
+        public static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+        {
+            MessageBox.Show(e.Exception.Message);
+        }
 
         protected  override void OnPaint(PaintEventArgs e)
         {
+            UpdateGamePropertiesValues();
             DrawBackground(e.Graphics);
             DrawBuildings(e.Graphics);
-            UpdateGamePropertiesValues();
         }
 
-        private void HandleClick(object sender, EventArgs e) //TODO
+        private void HandleClick(object sender, EventArgs e) //TODO поправить в соответствии с возможностями игрока относительно текущей игровой ситуации
         {
             var clickArgs = e as MouseEventArgs;
-            if (clickArgs.Y <= GamePropertiesBarHeight)
+            if (clickArgs == null || clickArgs.Y <= GamePropertiesBarHeight)
                 return;
 
             var buildingLocation = new Point(clickArgs.X / BitmapSize,
                 (clickArgs.Y - GamePropertiesBarHeight) / BitmapSize);
-            
-            var toolStripMenuItemJail = new ToolStripMenuItem("Jail", null,
+
+            var contextMenuStrip = new ContextMenuStrip
+            {
+                BackColor = Color.Chocolate
+            };
+
+            if (gameSetting.Map[buildingLocation.Y, buildingLocation.X] == null)
+                contextMenuStrip.Items.Add(CreateAddBuildingMenuItem(buildingLocation));
+            else
+            {
+                var toolStripMenuItemDeleteBuilding = new ToolStripMenuItem("Delete building", null,
+                    (s, args) =>
+                        gameSetting.DeleteBuilding(buildingLocation.X, buildingLocation.Y))
+                {
+                    BackColor = Color.Chocolate
+                };
+
+                var toolStripMenuItemAddWorker = new ToolStripMenuItem("Add worker", null,
+                    (s, args) =>
+                        gameSetting.AddWorker(gameSetting.Map[buildingLocation.Y, buildingLocation.X]))
+                {
+                    BackColor = Color.Chocolate
+                };
+
+                var toolStripMenuItemRetireWorker = new ToolStripMenuItem("Retire worker", null,
+                    (s, args) =>
+                        gameSetting.RetireWorker(gameSetting.Map[buildingLocation.Y, buildingLocation.X].WorkerId))
+                {
+                    BackColor = Color.Chocolate
+                };
+
+                contextMenuStrip.Items.AddRange(new ToolStripItem[]
+                    {toolStripMenuItemDeleteBuilding, toolStripMenuItemAddWorker, toolStripMenuItemRetireWorker});
+            }
+
+            contextMenuStrip.Show(clickArgs.Location);
+        }
+
+        private ToolStripMenuItem CreateAddBuildingMenuItem(Point buildingLocation)
+        {
+            var toolStripMenuItemJail = new ToolStripMenuItem("Jail - 4000 $", null,
                 (o, args) =>
                     gameSetting.AddBuilding(new Jail(buildingLocation.X, buildingLocation.Y)))
             {
                 BackColor = Color.Chocolate
             };
-            var toolStripMenuItemLivingHouse = new ToolStripMenuItem("Living house", null,
+            var toolStripMenuItemLivingHouse = new ToolStripMenuItem("Living house - 500 $", null,
                 (o, args) =>
                     gameSetting.AddBuilding(new LivingHouse(buildingLocation.X, buildingLocation.Y)))
             {
                 BackColor = Color.Chocolate
             };
-            var toolStripMenuItemRailroadStation = new ToolStripMenuItem("Railroad station", null,
+            var toolStripMenuItemRailroadStation = new ToolStripMenuItem("Railroad station - 3000 $", null,
                 (o, args) =>
                     gameSetting.AddBuilding(new RailroadStation(buildingLocation.X, buildingLocation.Y)))
             {
                 BackColor = Color.Chocolate
             };
-            var toolStripMenuItemSaloon = new ToolStripMenuItem("Saloon", null,
+            var toolStripMenuItemSaloon = new ToolStripMenuItem("Saloon - 1500 $", null,
                 (o, args) =>
                     gameSetting.AddBuilding(new Saloon(buildingLocation.X, buildingLocation.Y)))
             {
                 BackColor = Color.Chocolate
             };
-            var toolStripMenuItemSheriffsHouse = new ToolStripMenuItem("Sheriffs house", null,
+            var toolStripMenuItemSheriffsHouse = new ToolStripMenuItem("Sheriffs house - 5000 $", null,
                 (o, args) =>
                     gameSetting.AddBuilding(new SheriffsHouse(buildingLocation.X, buildingLocation.Y)))
             {
                 BackColor = Color.Chocolate
             };
-            var toolStripMenuItemStore = new ToolStripMenuItem("Store", null,
+            var toolStripMenuItemStore = new ToolStripMenuItem("Store - 3000 $", null,
                 (o, args) =>
                     gameSetting.AddBuilding(new Store(buildingLocation.X, buildingLocation.Y)))
             {
                 BackColor = Color.Chocolate
             };
 
-            var toolStripMenuItemAddBuilding = new ToolStripMenuItem("Add building")
+            return new ToolStripMenuItem("Add building")
             {
                 DropDownItems =
                 {
@@ -109,40 +150,6 @@ namespace GoldenCity.Forms
                 },
                 BackColor = Color.Chocolate
             };
-            
-            
-            var toolStripMenuItemDeleteBuilding = new ToolStripMenuItem("Delete building", null,
-                (s, args) => 
-                    gameSetting.DeleteBuilding(buildingLocation.X, buildingLocation.Y))
-            {
-                BackColor = Color.Chocolate
-            };
-
-            var toolStripMenuItemAddWorker = new ToolStripMenuItem("Add worker", null,
-                (s, args) => 
-                    gameSetting.AddWorker(gameSetting.Map[buildingLocation.Y, buildingLocation.X]))
-            {
-                BackColor = Color.Chocolate
-            };
-
-            var toolStripMenuItemRetireWorker = new ToolStripMenuItem("Retire worker", null,
-                (s, args) =>
-                    gameSetting.RetireWorker(gameSetting.Map[buildingLocation.Y, buildingLocation.X].WorkerId))
-            {
-                BackColor = Color.Chocolate
-            };
-
-
-            var contextMenuStrip = new ContextMenuStrip
-            {
-                Items =
-                {
-                    toolStripMenuItemAddBuilding, toolStripMenuItemDeleteBuilding,
-                    toolStripMenuItemAddWorker, toolStripMenuItemRetireWorker
-                },
-                BackColor = Color.Chocolate
-            };
-            contextMenuStrip.Show(clickArgs.Location);
         }
 
         private void TimerTick(object sender, EventArgs e)
@@ -198,7 +205,7 @@ namespace GoldenCity.Forms
             {
                 Location = new Point(0, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
-                Text = $"Money: {gameSetting.Money}",
+                Text = $"Money: {gameSetting.Money} $",
                 BackColor = Color.Chocolate
             };
 
@@ -206,7 +213,7 @@ namespace GoldenCity.Forms
             {
                 Location = new Point(ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
-                Text = $"Citiziens: {gameSetting.citiziens.Count}",
+                Text = $"Citiziens: {gameSetting.citizens.Count}",
                 BackColor = Color.Chocolate
             };
 
@@ -214,7 +221,7 @@ namespace GoldenCity.Forms
             {
                 Location = new Point(2 * ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
-                Text = $"Citiziens Limit: {gameSetting.CitiziensLimit}",
+                Text = $"Citiziens Limit: {gameSetting.CitizensLimit}",
                 BackColor = Color.Chocolate
             };
 
@@ -243,9 +250,9 @@ namespace GoldenCity.Forms
 
         private void UpdateGamePropertiesValues()
         {
-            Controls[0].Text = $"Money: {gameSetting.Money}";
-            Controls[1].Text = $"Citiziens: {gameSetting.citiziens.Count}";
-            Controls[2].Text = $"Citiziens Limit: {gameSetting.CitiziensLimit}";
+            Controls[0].Text = $"Money: {gameSetting.Money} $";
+            Controls[1].Text = $"Citiziens: {gameSetting.citizens.Count}";
+            Controls[2].Text = $"Citiziens Limit: {gameSetting.CitizensLimit}";
             Controls[3].Text = $"Sheriffs: {gameSetting.SheriffsCount}";
             Controls[4].Text = $"Attack timer: {gameSetting.AttackTimerInterval / 1000} sec";
         }

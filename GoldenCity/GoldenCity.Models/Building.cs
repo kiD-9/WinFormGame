@@ -20,15 +20,15 @@ namespace GoldenCity.Models
         public int IncomeMoney { get; protected set; }
         public int Cost { get; protected set; }
 
-        public virtual void AddWorker(int id)
+        public void AddWorker(int id)
         {
             if (id < 0)
-                return; //cant add worker
+                throw new Exception("Can't be worker with this id");
                 
             WorkerId = id;
         }
 
-        public virtual void RemoveWorker()
+        public void RemoveWorker()
         {
             WorkerId = -1;
         }

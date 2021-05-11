@@ -7,59 +7,60 @@ namespace GoldenCity.Models
 {
     public class GameSetting
     {
-        public readonly Dictionary<int, (int,int)> citiziens; //public для возможности тестирования
-        public readonly Dictionary<int, (int,int)> workingCitiziens;
+        public readonly Dictionary<int, (int,int)> citizens; //public для возможности тестирования
+        public readonly Dictionary<int, (int,int)> workingCitizens;
         private Building[,] map;
         private int money;
         private int incomeMoney;
-        private const int PayTimerInterval = 45000; //время ms
+        private const int PayTimerInterval = 45000; // ms
         private Timer payTimer;
-        private int attackTimerInterval; //время ms
+        private int attackTimerInterval; // ms
         private int attackTimerIntervalIncreaser;
         private Timer attackTimer;
-        private int newCitizienTimerInterval; //время ms
-        private Timer newCitizienTimer;
-        private int citiziensLimit;
-        private int newCitizienId;
+        private int newCitizenTimerInterval; // ms
+        private Timer newCitizenTimer;
+        private int citizensLimit;
+        private int newCitizenId;
         private int jailWorkersCount;
         private bool withoutTimers;
 
-        public GameSetting(int mapSize, int startMoney = 500, bool withoutTimers = false) //withoutTimer = true, чтобы протестировать логику модели без таймеров
+        public GameSetting(int mapSize, int startMoney = 500, bool withoutTimers = false) //withoutTimers = true, чтобы протестировать логику модели без таймеров
         {
             this.withoutTimers = withoutTimers;
 
             map = new Building[mapSize, mapSize];
 
-            attackTimerInterval = 10000; //ms
+            attackTimerInterval = 10000; //ms //TODO переделать баланс таймеров
             attackTimerIntervalIncreaser = 1000;
-            newCitizienTimerInterval = 5000; //ms
+            newCitizenTimerInterval = 5000; //ms
             money = startMoney + 500; //вычтется 500 из money на следующем шаге
 
             AddBuilding(new LivingHouse(0, 0)); //вычтется 500 из money
-            citiziens = new Dictionary<int, (int, int)>();
-            workingCitiziens = new Dictionary<int, (int, int)>();
-
+            citizens = new Dictionary<int, (int, int)>();
+            workingCitizens = new Dictionary<int, (int, int)>();
             // if (!withoutTimers)
             //     Start();
         }
 
         public Building[,] Map => map;
         public int Money => money;
-        public int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncreaser; //ms , public для тестирования
+        public int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncreaser; //ms
         public int SheriffsCount { get; private set; }
-        public int CitiziensLimit => citiziensLimit;
+        public int CitizensLimit => citizensLimit;
 
         public void Start()
         {
             payTimer = new Timer(PayDay, null, PayTimerInterval, PayTimerInterval);
             attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
-            newCitizienTimer = new Timer(AddCitizien, null, 0, newCitizienTimerInterval);
+            newCitizenTimer = new Timer(AddCitizen, null, 0, newCitizenTimerInterval);
         }
         
         public void AddBuilding(Building building)
         {
-            if (map[building.Y, building.X] != null || (money - building.Cost < 0))
-                throw new Exception("Can't build");
+            if (map[building.Y, building.X] != null)
+                throw new Exception("No space to build");
+            if (money - building.Cost < 0)
+                throw new Exception("Not enough money to build");
 
             map[building.Y, building.X] = building;
             ChangeHappiness(building.Happiness);
@@ -67,7 +68,7 @@ namespace GoldenCity.Models
             
             if (building is LivingHouse)
             {
-                ChangeCitiziensLimit(LivingHouse.LivingPlaces);
+                ChangeCitizensLimit(LivingHouse.LivingPlaces);
             }
         }
 
@@ -80,10 +81,10 @@ namespace GoldenCity.Models
             switch (building)
             {
                 case LivingHouse livingHouse:
-                    ChangeCitiziensLimit(-LivingHouse.LivingPlaces);
+                    ChangeCitizensLimit(-LivingHouse.LivingPlaces);
                     for (var i = 0; i < LivingHouse.LivingPlaces; i++)
                     {
-                        DeleteCitizien(livingHouse[i]);
+                        DeleteCitizen(livingHouse[i]);
                     }
                     livingHouse.DeleteBuilding();
                     break;
@@ -96,37 +97,36 @@ namespace GoldenCity.Models
             map[y, x] = null;
         }
 
-        public void DeleteCitizien(int id)
+        public void DeleteCitizen(int id)
         {
-            if (!IsCitizien(id))
-                return; //not citizien
+            if (!IsCitizen(id))
+                throw new Exception("Citizen doesn't exist");
             
             if (IsWorker(id))
                 RetireWorker(id);
 
-            var livingHouse = map[citiziens[id].Item2, citiziens[id].Item1] as LivingHouse;
+            var livingHouse = map[citizens[id].Item2, citizens[id].Item1] as LivingHouse;
             if (livingHouse == null)
                 throw new Exception("Living house doesn't exist");
             
             livingHouse.DeleteLiver(id);
-            citiziens.Remove(id);
+            citizens.Remove(id);
         }
 
-        public bool IsCitizien(int id)
+        public bool IsCitizen(int id)
         {
-            return citiziens.ContainsKey(id);
+            return citizens.ContainsKey(id);
         }
 
         public void AddWorker(Building building)
         {
-            if (workingCitiziens.Count == citiziens.Count)
-                return;//cant be any worker
-            ////////////////throw new Exception("Can't become worker");
+            if (workingCitizens.Count == citizens.Count)
+                throw new Exception("Not enough citizens to add worker");
             
-            var id = citiziens.Keys.First(CanBecomeWorker);
+            var id = citizens.Keys.First(CanBecomeWorker);
             
             ChangeIncomeMoney(building.IncomeMoney);
-            workingCitiziens[id] = (building.X, building.Y);
+            workingCitizens[id] = (building.X, building.Y);
             
             switch (building)
             {
@@ -137,7 +137,7 @@ namespace GoldenCity.Models
                 
                 case SheriffsHouse sheriffsHouse:
                     if (SheriffsCount == 2)
-                        return; //cant be more than 2 sheriffs
+                        throw new Exception("Can't be more than 2 sheriffs");
                     SheriffsCount++;
                     sheriffsHouse.AddWorker(id);
                     break;
@@ -152,12 +152,10 @@ namespace GoldenCity.Models
         {
             if (!IsWorker(id))
                 return; //isnt worker
-            
-            /////////////////throw new Exception("Isn't worker");
 
-            var workingPlace = map[workingCitiziens[id].Item2, workingCitiziens[id].Item1];
+            var workingPlace = map[workingCitizens[id].Item2, workingCitizens[id].Item1];
             ChangeIncomeMoney(-workingPlace.IncomeMoney);
-            workingCitiziens.Remove(id);
+            workingCitizens.Remove(id);
             
             switch (workingPlace)
             {
@@ -177,9 +175,9 @@ namespace GoldenCity.Models
             }
         }
 
-        public void ChangeCitiziensLimit(int deltaL)
+        public void ChangeCitizensLimit(int deltaL)
         {
-            citiziensLimit += deltaL;
+            citizensLimit += deltaL;
         }
         
         public void ChangeMoney(int deltaM)
@@ -201,7 +199,7 @@ namespace GoldenCity.Models
 
         public void ChangeHappiness(int happiness)
         {
-            newCitizienTimerInterval -= happiness * 500; //ms
+            newCitizenTimerInterval -= happiness * 500; //ms
         }
         
         public void Attack(object obj)
@@ -211,38 +209,38 @@ namespace GoldenCity.Models
             bandits.Raid();
             
             if (!withoutTimers)
-                attackTimer.Change(AttackTimerInterval, AttackTimerInterval); //по идее должно сработать через attackTimerInterval
+                attackTimer.Change(AttackTimerInterval, AttackTimerInterval); // должно сработать через attackTimerInterval
         }
         
-        public void AddCitizien(object obj)
+        public void AddCitizen(object obj)
         {
-            if (citiziens.Count >= citiziensLimit)
-                throw new Exception("Citiziens limit exceeded");
+            if (citizens.Count >= citizensLimit)
+                throw new Exception("Citizens limit exceeded");
             
             foreach (var building in map)
             {
                 if (building is LivingHouse house && house.HavePlace)
                 {
-                    citiziens[newCitizienId] = (building.X, building.Y);
-                    house.AddLiver(newCitizienId);
+                    citizens[newCitizenId] = (building.X, building.Y);
+                    house.AddLiver(newCitizenId);
                     break;
                 }
             }
 
-            newCitizienId++;
+            newCitizenId++;
             
             if (!withoutTimers)
-                newCitizienTimer.Change(newCitizienTimerInterval, newCitizienTimerInterval); //по идее должно сработать через newCitizienTimerInterval
+                newCitizenTimer.Change(newCitizenTimerInterval, newCitizenTimerInterval); //по идее должно сработать через newCitizenTimerInterval
         }
         
         private bool CanBecomeWorker(int id)
         {
-            return IsCitizien(id) && !IsWorker(id);
+            return IsCitizen(id) && !IsWorker(id);
         }
 
         private bool IsWorker(int id)
         {
-            return IsCitizien(id) && workingCitiziens.ContainsKey(id);
+            return IsCitizen(id) && workingCitizens.ContainsKey(id);
         }
     }
 }

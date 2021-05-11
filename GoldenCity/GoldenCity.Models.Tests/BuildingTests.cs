@@ -15,12 +15,19 @@ namespace GoldenCity.Models.Tests
         {
             gameSetting = new GameSetting(2, 4000, true); //без таймера для теста логики
         }
-
+        
+        [Test]
+        public void ExceptionWhenNegativeWorkerIdGiven()
+        {
+            var building = new Building(0, 0);
+            var ex = Assert.Throws<Exception>(() => building.AddWorker(-5));
+            Assert.That(ex.Message, Is.EqualTo("Can't be worker with this id"));
+        }
+        
         [Test]
         public void CheckBuilding()
         {
             var building = new Building(0, 0);
-            building.AddWorker(-5);
             Assert.AreEqual(-1, building.WorkerId);
             building.AddWorker(20);
             Assert.AreEqual(20, building.WorkerId);
