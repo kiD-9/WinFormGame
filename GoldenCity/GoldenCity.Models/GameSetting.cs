@@ -2,58 +2,45 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Timers;
 
 namespace GoldenCity.Models
 {
     public class GameSetting
     {
+        public const int PayTimerInterval = 4500; // ms //TODO
         public readonly Dictionary<int, (int,int)> citizens; //public для возможности тестирования
         public readonly Dictionary<int, (int,int)> workingCitizens;
         private Building[,] map;
         private int money;
         private int incomeMoney;
-        private const int PayTimerInterval = 45000; // ms
-        private Timer payTimer;
-        private int attackTimerInterval; // ms
-        private int attackTimerIntervalIncreaser;
-        private Timer attackTimer;
+        private readonly int attackTimerInterval; // ms
+        private readonly int attackTimerIntervalIncreaser; //ms
         private int newCitizenTimerInterval; // ms
-        private Timer newCitizenTimer;
         private int citizensLimit;
         private int newCitizenId;
         private int jailWorkersCount;
-        private bool withoutTimers;
 
-        public GameSetting(int mapSize, int startMoney = 500, bool withoutTimers = false) //withoutTimers = true, чтобы протестировать логику модели без таймеров
+        public GameSetting(int mapSize, int startMoney = 500)
         {
-            this.withoutTimers = withoutTimers;
-
             map = new Building[mapSize, mapSize];
 
             attackTimerInterval = 10000; //ms //TODO переделать баланс таймеров
-            attackTimerIntervalIncreaser = 1000;
+            attackTimerIntervalIncreaser = 1000; //ms, окончательный
             newCitizenTimerInterval = 5000; //ms
             money = startMoney + 500; //вычтется 500 из money на следующем шаге
 
             AddBuilding(new LivingHouse(0, 0)); //вычтется 500 из money
             citizens = new Dictionary<int, (int, int)>();
             workingCitizens = new Dictionary<int, (int, int)>();
-            // if (!withoutTimers)
-            //     Start();
         }
 
         public Building[,] Map => map;
         public int Money => money;
+        public int NewCitizenTimerInterval => newCitizenTimerInterval;
         public int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncreaser; //ms
         public int SheriffsCount { get; private set; }
         public int CitizensLimit => citizensLimit;
-
-        public void Start()
-        {
-            payTimer = new Timer(PayDay, null, PayTimerInterval, PayTimerInterval);
-            attackTimer = new Timer(Attack, null, attackTimerInterval, attackTimerInterval);
-            newCitizenTimer = new Timer(AddCitizen, null, 0, newCitizenTimerInterval);
-        }
         
         public void AddBuilding(Building building)
         {
@@ -125,27 +112,27 @@ namespace GoldenCity.Models
             
             var id = citizens.Keys.First(CanBecomeWorker);
             
-            ChangeIncomeMoney(building.IncomeMoney);
-            workingCitizens[id] = (building.X, building.Y);
-            
             switch (building)
             {
                 case Jail jail:
-                    jailWorkersCount++;
                     jail.AddWorker(id);
+                    jailWorkersCount++;
                     break;
                 
                 case SheriffsHouse sheriffsHouse:
                     if (SheriffsCount == 2)
                         throw new Exception("Can't be more than 2 sheriffs");
-                    SheriffsCount++;
                     sheriffsHouse.AddWorker(id);
+                    SheriffsCount++;
                     break;
                 
                 default:
                     building.AddWorker(id);
                     break;
             }
+            
+            ChangeIncomeMoney(building.IncomeMoney);
+            workingCitizens[id] = (building.X, building.Y);
         }
 
         public void RetireWorker(int id)
@@ -192,7 +179,7 @@ namespace GoldenCity.Models
             incomeMoney += deltaM;
         }
         
-        public void PayDay(object obj) //должно вызываться из payTimer
+        public void PayDay()
         {
             ChangeMoney(incomeMoney);
         }
@@ -202,17 +189,14 @@ namespace GoldenCity.Models
             newCitizenTimerInterval -= happiness * 500; //ms
         }
         
-        public void Attack(object obj)
+        public void Attack()
         {
             var bandits = new Bandits(this);
             bandits.FindBuildingsToRaid();
             bandits.Raid();
-            
-            if (!withoutTimers)
-                attackTimer.Change(AttackTimerInterval, AttackTimerInterval); // должно сработать через attackTimerInterval
         }
         
-        public void AddCitizen(object obj)
+        public void AddCitizen()
         {
             if (citizens.Count >= citizensLimit)
                 throw new Exception("Citizens limit exceeded");
@@ -228,9 +212,6 @@ namespace GoldenCity.Models
             }
 
             newCitizenId++;
-            
-            if (!withoutTimers)
-                newCitizenTimer.Change(newCitizenTimerInterval, newCitizenTimerInterval); //по идее должно сработать через newCitizenTimerInterval
         }
         
         private bool CanBecomeWorker(int id)

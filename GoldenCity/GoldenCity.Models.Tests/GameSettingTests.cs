@@ -13,7 +13,7 @@ namespace GoldenCity.Models.Tests
         [SetUp]
         public void Setup()
         {
-            gameSetting = new GameSetting(2, 4000, true); //без таймера для теста логики
+            gameSetting = new GameSetting(2, 4000); //без таймера для теста логики
         }
         
         [Test]
@@ -52,7 +52,7 @@ namespace GoldenCity.Models.Tests
         {
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                gameSetting.AddCitizen(null);
+                gameSetting.AddCitizen();
             }
 
             Assert.AreEqual(false, (gameSetting.Map[0, 0] as LivingHouse).HavePlace);
@@ -64,14 +64,14 @@ namespace GoldenCity.Models.Tests
         }
 
         [Test]
-        public void CheckCitizienLimitExceeded()
+        public void CheckCitizenLimitExceeded()
         {
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                gameSetting.AddCitizen(null);
+                gameSetting.AddCitizen();
             }
 
-            var ex = Assert.Throws<Exception>(() => gameSetting.AddCitizen(null));
+            var ex = Assert.Throws<Exception>(() => gameSetting.AddCitizen());
             Assert.That(ex.Message, Is.EqualTo("Citizens limit exceeded"));
         }
         
@@ -83,7 +83,7 @@ namespace GoldenCity.Models.Tests
 
             for (var i = 0; i < 2 * LivingHouse.LivingPlaces; i++)
             {
-                gameSetting.AddCitizen(null);
+                gameSetting.AddCitizen();
             }
 
             Assert.AreEqual(false, (gameSetting.Map[0, 0] as LivingHouse).HavePlace);
@@ -106,7 +106,7 @@ namespace GoldenCity.Models.Tests
         {
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                gameSetting.AddCitizen(null);
+                gameSetting.AddCitizen();
             }
 
             gameSetting.DeleteBuilding(0, 0);
@@ -118,8 +118,8 @@ namespace GoldenCity.Models.Tests
         public void CheckAddSheriffsHouse()
         {
             gameSetting.ChangeMoney(5000);
-            gameSetting.AddCitizen(null);
-            gameSetting.AddCitizen(null);
+            gameSetting.AddCitizen();
+            gameSetting.AddCitizen();
             gameSetting.AddBuilding(new SheriffsHouse(0, 1));
             Assert.AreEqual(0, gameSetting.SheriffsCount);
             gameSetting.AddWorker(gameSetting.Map[1, 0]);
@@ -132,12 +132,12 @@ namespace GoldenCity.Models.Tests
         {
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                gameSetting.AddCitizen(null);
+                gameSetting.AddCitizen();
             }
             var store = new Store(0, 1);
             gameSetting.AddBuilding(store);
             gameSetting.AddWorker(store);
-            gameSetting.PayDay(null);
+            gameSetting.PayDay();
             Assert.AreEqual(2500, gameSetting.Money);
         }
 
@@ -151,7 +151,7 @@ namespace GoldenCity.Models.Tests
 
             for (var i = 0; i < 4; i++)
             {
-                gameSetting.AddCitizen(null);
+                gameSetting.AddCitizen();
             }
 
             gameSetting.AddWorker(gameSetting.Map[1, 0]);
@@ -160,9 +160,9 @@ namespace GoldenCity.Models.Tests
             Assert.AreEqual(1, gameSetting.SheriffsCount);
             
             Assert.AreEqual(0, gameSetting.Money);
-            gameSetting.PayDay(null);
+            gameSetting.PayDay();
             Assert.AreEqual(3000, gameSetting.Money);
-            gameSetting.Attack(null);
+            gameSetting.Attack();
             Assert.AreEqual(2100, gameSetting.Money);
             Assert.AreEqual(1, gameSetting.workingCitizens.Count);
             Assert.AreEqual(2, gameSetting.Map[1, 1].WorkerId);

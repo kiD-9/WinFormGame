@@ -11,7 +11,7 @@ namespace GoldenCity.Models.Tests
         [SetUp]
         public void Setup()
         {
-            gameSetting = new GameSetting(2, 4000, true); //без таймера для теста логики
+            gameSetting = new GameSetting(2, 4000); //без таймера для теста логики
         }
         
         [Test]
@@ -23,7 +23,7 @@ namespace GoldenCity.Models.Tests
 
             for (var i = 0; i < 2; i++)
             {
-                gameSetting.AddCitizen(null);
+                gameSetting.AddCitizen();
             }
 
             gameSetting.AddWorker(gameSetting.Map[1, 0]);
@@ -31,7 +31,7 @@ namespace GoldenCity.Models.Tests
             
             Assert.AreEqual(0, gameSetting.Money);
             gameSetting.ChangeMoney(100);
-            gameSetting.Attack(null);
+            gameSetting.Attack();
             Assert.AreEqual(68, gameSetting.Money); //68, т.к. store+store+livingHouse = 32%
             Assert.AreEqual(false, gameSetting.citizens.Any());
             Assert.AreEqual(false, gameSetting.workingCitizens.Any());

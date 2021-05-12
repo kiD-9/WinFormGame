@@ -24,6 +24,8 @@ namespace GoldenCity.Models
         {
             if (id < 0)
                 throw new Exception("Can't be worker with this id");
+            if (WorkerId >= 0)
+                throw new Exception("Somebody already works here");
                 
             WorkerId = id;
         }

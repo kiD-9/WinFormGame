@@ -13,7 +13,7 @@ namespace GoldenCity.Models.Tests
         [SetUp]
         public void Setup()
         {
-            gameSetting = new GameSetting(2, 4000, true); //без таймера для теста логики
+            gameSetting = new GameSetting(2, 4000); //без таймера для теста логики
         }
         
         [Test]

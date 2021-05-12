@@ -23,11 +23,11 @@ namespace GoldenCity.Forms
             DoubleBuffered = true;
             InitializeComponent();
             
-            gameSetting = new GameSetting(MapSize, 10000, true);
+            gameSetting = new GameSetting(MapSize, 15000);
             ClientSize = new Size(MapSize * BitmapSize, MapSize * BitmapSize + GamePropertiesBarHeight);
             for (var i = 0; i < 4; i++)
             {
-                gameSetting.AddCitizen(null);
+                gameSetting.AddCitizen();
             }
 
             TakeBitmapsFromDirectory(new DirectoryInfo("Resources"));
@@ -38,7 +38,7 @@ namespace GoldenCity.Forms
             repaintTimer.Tick += TimerTick;
             repaintTimer.Start();
             
-            //TODO игровые таймеры
+            InitializeGameTimers();
             
             Click += HandleClick;
         }
@@ -48,7 +48,7 @@ namespace GoldenCity.Forms
             MessageBox.Show(e.Exception.Message);
         }
 
-        protected  override void OnPaint(PaintEventArgs e)
+        protected override void OnPaint(PaintEventArgs e)
         {
             UpdateGamePropertiesValues();
             DrawBackground(e.Graphics);
@@ -154,7 +154,7 @@ namespace GoldenCity.Forms
 
         private void TimerTick(object sender, EventArgs e)
         {
-            gameSetting.ChangeMoney(100);// для проверки отрисовки добавил доход
+            // gameSetting.ChangeMoney(100);// для проверки отрисовки добавил доход
             Invalidate();
         }
 
@@ -201,7 +201,7 @@ namespace GoldenCity.Forms
 
         private void AddPropertiesControls()
         {
-            var money = new Label
+            var moneyLabel = new Label
             {
                 Location = new Point(0, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
@@ -209,7 +209,7 @@ namespace GoldenCity.Forms
                 BackColor = Color.Chocolate
             };
 
-            var citiziensCount = new Label
+            var citiziensCountLabel = new Label
             {
                 Location = new Point(ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
@@ -217,7 +217,7 @@ namespace GoldenCity.Forms
                 BackColor = Color.Chocolate
             };
 
-            var citiziensLimit = new Label
+            var citiziensLimitLabel = new Label
             {
                 Location = new Point(2 * ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
@@ -225,7 +225,7 @@ namespace GoldenCity.Forms
                 BackColor = Color.Chocolate
             };
 
-            var sheriffsCount = new Label
+            var sheriffsCountLabel = new Label
             {
                 Location = new Point(3 * ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
@@ -233,7 +233,7 @@ namespace GoldenCity.Forms
                 BackColor = Color.Chocolate
             };
 
-            var attackTimer = new Label
+            var attackTimerLabel = new Label
             {
                 Location = new Point(4 * ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
@@ -241,11 +241,11 @@ namespace GoldenCity.Forms
                 BackColor = Color.Chocolate
             };
             
-            Controls.Add(money);
-            Controls.Add(citiziensCount);
-            Controls.Add(citiziensLimit);
-            Controls.Add(sheriffsCount);
-            Controls.Add(attackTimer);
+            Controls.Add(moneyLabel);
+            Controls.Add(citiziensCountLabel);
+            Controls.Add(citiziensLimitLabel);
+            Controls.Add(sheriffsCountLabel);
+            Controls.Add(attackTimerLabel);
         }
 
         private void UpdateGamePropertiesValues()
