@@ -14,7 +14,7 @@ namespace GoldenCity.Models
             BudgetWeakness = 2;
             IncomeMoney = 0;
             Cost = 500;
-            livers = new int[LivingPlaces] {-1, -1, -1, -1};
+            livers = new[] {-1, -1, -1, -1};
             HavePlace = true;
         }
         

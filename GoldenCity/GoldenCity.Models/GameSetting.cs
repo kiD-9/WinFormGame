@@ -1,67 +1,75 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
-using System.Threading;
-using System.Timers;
 
 namespace GoldenCity.Models
 {
     public class GameSetting
     {
         public const int PayTimerInterval = 4500; // ms //TODO
-        public readonly Dictionary<int, (int,int)> citizens; //public для возможности тестирования
-        public readonly Dictionary<int, (int,int)> workingCitizens;
-        private Building[,] map;
-        private int money;
+        private readonly Dictionary<int, (int,int)> citizens;
+        private readonly Dictionary<int, (int,int)> workingCitizens;
         private int incomeMoney;
         private readonly int attackTimerInterval; // ms
-        private readonly int attackTimerIntervalIncreaser; //ms
-        private int newCitizenTimerInterval; // ms
-        private int citizensLimit;
+        private readonly int attackTimerIntervalIncrease; //ms
         private int newCitizenId;
         private int jailWorkersCount;
 
-        public GameSetting(int mapSize, int startMoney = 500)
+        public GameSetting(int mapSize, int startMoney = 500, bool isTest = false)
         {
-            map = new Building[mapSize, mapSize];
+            Map = new Building[mapSize, mapSize];
 
-            attackTimerInterval = 10000; //ms //TODO переделать баланс таймеров
-            attackTimerIntervalIncreaser = 1000; //ms, окончательный
-            newCitizenTimerInterval = 5000; //ms
-            money = startMoney + 500; //вычтется 500 из money на следующем шаге
+            attackTimerInterval = 10000; //ms //TODO balance timers
+            attackTimerIntervalIncrease = 1000; //ms
+            NewCitizenTimerInterval = 5000; //ms
+            Money = startMoney + 500; // -500 money on next step
 
-            AddBuilding(new LivingHouse(0, 0)); //вычтется 500 из money
+            AddBuilding(new LivingHouse(0, 0)); // -500 money
             citizens = new Dictionary<int, (int, int)>();
             workingCitizens = new Dictionary<int, (int, int)>();
+            BuildingsToRaid = new List<Building>();
+
+            if (!isTest)
+                for (var i = 0; i < 4; i++)
+                    AddCitizen();
         }
 
-        public Building[,] Map => map;
-        public int Money => money;
-        public int NewCitizenTimerInterval => newCitizenTimerInterval;
-        public int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncreaser; //ms
+        public Building[,] Map { get; }
+        public List<Building> BuildingsToRaid { get; private set; }
+        public int Money { get; private set; }
+        public int NewCitizenTimerInterval { get; private set; }
+        public int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncrease; //ms
         public int SheriffsCount { get; private set; }
-        public int CitizensLimit => citizensLimit;
-        
+        public int CitizensLimit { get; private set; }
+        public int CitizensCount => citizens.Count;
+        public bool IsGameFinished { get; private set; }
+
         public void AddBuilding(Building building)
         {
-            if (map[building.Y, building.X] != null)
+            if (Map[building.Y, building.X] != null)
                 throw new Exception("No space to build");
-            if (money - building.Cost < 0)
+            if (Money - building.Cost < 0)
                 throw new Exception("Not enough money to build");
 
-            map[building.Y, building.X] = building;
+            if (building is TownHall)
+            {
+                if (CitizensCount < 40)
+                    throw new Exception("To build town hall you need more than 40 livers");
+                IsGameFinished = true;
+            }
+            
+            Map[building.Y, building.X] = building;
             ChangeHappiness(building.Happiness);
             ChangeMoney(-building.Cost);
             
             if (building is LivingHouse)
-            {
                 ChangeCitizensLimit(LivingHouse.LivingPlaces);
-            }
         }
 
         public void DeleteBuilding(int x, int y)
         {
-            var building = map[y, x];
+            var building = Map[y, x];
             RetireWorker(building.WorkerId);
             ChangeHappiness(-building.Happiness);
             
@@ -81,7 +89,7 @@ namespace GoldenCity.Models
                     break;
             }
             
-            map[y, x] = null;
+            Map[y, x] = null;
         }
 
         public void DeleteCitizen(int id)
@@ -92,7 +100,7 @@ namespace GoldenCity.Models
             if (IsWorker(id))
                 RetireWorker(id);
 
-            var livingHouse = map[citizens[id].Item2, citizens[id].Item1] as LivingHouse;
+            var livingHouse = Map[citizens[id].Item2, citizens[id].Item1] as LivingHouse;
             if (livingHouse == null)
                 throw new Exception("Living house doesn't exist");
             
@@ -138,9 +146,9 @@ namespace GoldenCity.Models
         public void RetireWorker(int id)
         {
             if (!IsWorker(id))
-                return; //isnt worker
+                return; //isn't worker
 
-            var workingPlace = map[workingCitizens[id].Item2, workingCitizens[id].Item1];
+            var workingPlace = Map[workingCitizens[id].Item2, workingCitizens[id].Item1];
             ChangeIncomeMoney(-workingPlace.IncomeMoney);
             workingCitizens.Remove(id);
             
@@ -162,19 +170,19 @@ namespace GoldenCity.Models
             }
         }
 
-        public void ChangeCitizensLimit(int deltaL)
+        private void ChangeCitizensLimit(int deltaL)
         {
-            citizensLimit += deltaL;
+            CitizensLimit += deltaL;
         }
         
         public void ChangeMoney(int deltaM)
         {
-            money += deltaM;
-            if (money < 0)
-                money = 0;
+            Money += deltaM;
+            if (Money < 0)
+                Money = 0;
         }
 
-        public void ChangeIncomeMoney(int deltaM)
+        private void ChangeIncomeMoney(int deltaM)
         {
             incomeMoney += deltaM;
         }
@@ -184,24 +192,28 @@ namespace GoldenCity.Models
             ChangeMoney(incomeMoney);
         }
 
-        public void ChangeHappiness(int happiness)
+        private void ChangeHappiness(int happiness)
         {
-            newCitizenTimerInterval -= happiness * 500; //ms
+            if (NewCitizenTimerInterval - happiness * 500 >= 2500)
+                NewCitizenTimerInterval -= happiness * 500; //ms
+            else
+                NewCitizenTimerInterval = 2500;
         }
         
         public void Attack()
         {
             var bandits = new Bandits(this);
             bandits.FindBuildingsToRaid();
+            BuildingsToRaid = bandits.BuildingsToRaid.ToList();
             bandits.Raid();
         }
         
         public void AddCitizen()
         {
-            if (citizens.Count >= citizensLimit)
+            if (citizens.Count >= CitizensLimit)
                 throw new Exception("Citizens limit exceeded");
             
-            foreach (var building in map)
+            foreach (var building in Map)
             {
                 if (building is LivingHouse house && house.HavePlace)
                 {

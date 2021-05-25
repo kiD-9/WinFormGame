@@ -21,12 +21,12 @@ namespace GoldenCity.Forms
             Application.ThreadException += Application_ThreadException;
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
 
-            Application.Run(new Form1());
+            Application.Run(new MainForm());
         }
         
         private static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
         {
-            Form1.Application_ThreadException(sender, e);
+            MainForm.Application_ThreadException(e);
         }
     }
 }

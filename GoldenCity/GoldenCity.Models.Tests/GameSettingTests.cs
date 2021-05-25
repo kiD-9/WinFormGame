@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 
 namespace GoldenCity.Models.Tests
@@ -9,11 +10,21 @@ namespace GoldenCity.Models.Tests
     public class GameSettingTests
     {
         private GameSetting gameSetting;
+        private Dictionary<int, (int, int)> gameCitizens;
+        private Dictionary<int, (int, int)> gameWorkingCitizens;
         
         [SetUp]
         public void Setup()
         {
-            gameSetting = new GameSetting(2, 4000); //без таймера для теста логики
+            gameSetting = new GameSetting(2, 4000, true);
+            var fieldInfo = typeof(GameSetting).GetField("citizens", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (fieldInfo == null)
+                throw new NullReferenceException();
+            gameCitizens = (Dictionary<int, (int, int)>)fieldInfo.GetValue(gameSetting);
+            fieldInfo = typeof(GameSetting).GetField("workingCitizens", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (fieldInfo == null)
+                throw new NullReferenceException();
+            gameWorkingCitizens = (Dictionary<int, (int, int)>) fieldInfo.GetValue(gameSetting);
         }
         
         [Test]
@@ -44,7 +55,7 @@ namespace GoldenCity.Models.Tests
         [Test]
         public void NoCitiziensWhenCreated()
         {
-            Assert.AreEqual(new Dictionary<int, (int, int)>(), gameSetting.citizens);
+            Assert.AreEqual(new Dictionary<int, (int, int)>(), gameCitizens);
         }
 
         [Test]
@@ -58,7 +69,7 @@ namespace GoldenCity.Models.Tests
             Assert.AreEqual(false, (gameSetting.Map[0, 0] as LivingHouse).HavePlace);
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                Assert.AreEqual((0, 0), gameSetting.citizens[i]);
+                Assert.AreEqual((0, 0), gameCitizens[i]);
                 Assert.AreEqual(true, gameSetting.IsCitizen(i));
             }
         }
@@ -90,13 +101,13 @@ namespace GoldenCity.Models.Tests
             Assert.AreEqual(false, (gameSetting.Map[1, 0] as LivingHouse).HavePlace);
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
-                Assert.AreEqual((0, 0), gameSetting.citizens[i]);
+                Assert.AreEqual((0, 0), gameCitizens[i]);
                 Assert.AreEqual(true, gameSetting.IsCitizen(i));
             }
 
             for (var i = LivingHouse.LivingPlaces; i < 2 * LivingHouse.LivingPlaces; i++)
             {
-                Assert.AreEqual((0, 1), gameSetting.citizens[i]);
+                Assert.AreEqual((0, 1), gameCitizens[i]);
                 Assert.AreEqual(true, gameSetting.IsCitizen(i));
             }
         }
@@ -111,7 +122,7 @@ namespace GoldenCity.Models.Tests
 
             gameSetting.DeleteBuilding(0, 0);
             Assert.AreEqual(null, gameSetting.Map[0, 0]);
-            Assert.AreEqual(false, gameSetting.citizens.Any());
+            Assert.AreEqual(false, gameCitizens.Any());
         }
 
         [Test]
@@ -164,9 +175,9 @@ namespace GoldenCity.Models.Tests
             Assert.AreEqual(3000, gameSetting.Money);
             gameSetting.Attack();
             Assert.AreEqual(2100, gameSetting.Money);
-            Assert.AreEqual(1, gameSetting.workingCitizens.Count);
+            Assert.AreEqual(1, gameWorkingCitizens.Count);
             Assert.AreEqual(2, gameSetting.Map[1, 1].WorkerId);
-            Assert.AreEqual(2, gameSetting.citizens.Count);
+            Assert.AreEqual(2, gameSetting.CitizensCount);
             for (var i = 2; i < 4; i++)
             {
                 Assert.AreEqual(i, (gameSetting.Map[0, 0] as LivingHouse)[i]);

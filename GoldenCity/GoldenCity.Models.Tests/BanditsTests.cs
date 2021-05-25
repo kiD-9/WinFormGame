@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 
 namespace GoldenCity.Models.Tests
@@ -7,17 +10,26 @@ namespace GoldenCity.Models.Tests
     public class BanditsTests
     {
         private GameSetting gameSetting;
+        private Dictionary<int, (int, int)> gameCitizens;
+        private Dictionary<int, (int, int)> gameWorkingCitizens;
         
         [SetUp]
         public void Setup()
         {
-            gameSetting = new GameSetting(2, 4000); //без таймера для теста логики
+            gameSetting = new GameSetting(2, 6000, true);
+            var fieldInfo = typeof(GameSetting).GetField("citizens", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (fieldInfo == null)
+                throw new NullReferenceException();
+            gameCitizens = (Dictionary<int, (int, int)>)fieldInfo.GetValue(gameSetting);
+            fieldInfo = typeof(GameSetting).GetField("workingCitizens", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (fieldInfo == null)
+                throw new NullReferenceException();
+            gameWorkingCitizens = (Dictionary<int, (int, int)>) fieldInfo.GetValue(gameSetting);
         }
         
         [Test]
         public void CheckAttack()
         {
-            gameSetting.ChangeMoney(2000);
             gameSetting.AddBuilding(new Store(0,1));
             gameSetting.AddBuilding(new Store(1, 0));
 
@@ -32,9 +44,9 @@ namespace GoldenCity.Models.Tests
             Assert.AreEqual(0, gameSetting.Money);
             gameSetting.ChangeMoney(100);
             gameSetting.Attack();
-            Assert.AreEqual(68, gameSetting.Money); //68, т.к. store+store+livingHouse = 32%
-            Assert.AreEqual(false, gameSetting.citizens.Any());
-            Assert.AreEqual(false, gameSetting.workingCitizens.Any());
+            Assert.AreEqual(70, gameSetting.Money); //70, т.к. store + store = 30 (livingHouse.WorkerId < 0)
+            Assert.AreEqual(false, gameCitizens.Any());
+            Assert.AreEqual(false, gameWorkingCitizens.Any());
         }
     }
 }

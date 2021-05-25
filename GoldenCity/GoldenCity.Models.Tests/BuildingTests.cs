@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using NUnit.Framework;
 
 namespace GoldenCity.Models.Tests
@@ -8,14 +6,6 @@ namespace GoldenCity.Models.Tests
     [TestFixture]
     public class BuildingTests
     {
-        private GameSetting gameSetting;
-        
-        [SetUp]
-        public void Setup()
-        {
-            gameSetting = new GameSetting(2, 4000); //без таймера для теста логики
-        }
-        
         [Test]
         public void ExceptionWhenNegativeWorkerIdGiven()
         {

@@ -10,4 +10,16 @@
       <ProjectReference Include="..\GoldenCity.Models\GoldenCity.Models.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="MenuControl.cs">
+        <SubType>UserControl</SubType>
+      </Compile>
+      <Compile Update="GameControl.cs">
+        <SubType>UserControl</SubType>
+      </Compile>
+      <Compile Update="FinishedControl.cs">
+        <SubType>UserControl</SubType>
+      </Compile>
+    </ItemGroup>
+
 </Project>

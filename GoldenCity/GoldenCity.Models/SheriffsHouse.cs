@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace GoldenCity.Models
+﻿namespace GoldenCity.Models
 {
     public class SheriffsHouse : Building
     {
