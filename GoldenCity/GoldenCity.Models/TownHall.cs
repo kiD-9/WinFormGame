@@ -7,7 +7,8 @@
             Happiness = 0;
             BudgetWeakness = 0;
             IncomeMoney = 0;
-            Cost = 100000;
+            // Cost = 100000; //TODO CHANGE
+            Cost = 0;
         }
     }
 }

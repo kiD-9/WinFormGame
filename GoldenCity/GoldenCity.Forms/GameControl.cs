@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using GoldenCity.Models;
@@ -10,11 +8,10 @@ namespace GoldenCity.Forms
 {
     public partial class GameControl : UserControl
     {
+        public const int BitmapSize = 120;
+        public const int GamePropertiesBarHeight = 40;
         private readonly MainForm mainForm;
-        private readonly Dictionary<string, Bitmap> bitmaps = new Dictionary<string, Bitmap>();
-        private const int GamePropertiesBarHeight = 40;
         private const int BorderLineWidth = 8;
-        private const int BitmapSize = 120;
         private const int MapSize = 5;
         private GameSetting gameSetting;
         
@@ -26,7 +23,6 @@ namespace GoldenCity.Forms
             ClientSize = mainForm.ClientSize;
             
             gameSetting = new GameSetting(MapSize, 15000);
-            TakeBitmapsFromDirectory(new DirectoryInfo("Resources"));
             AddPropertiesControls();
             Click += HandleClick;
         }
@@ -51,7 +47,7 @@ namespace GoldenCity.Forms
                 BackColor = Color.Chocolate
             };
 
-            if (gameSetting.Map[buildingLocation.Y, buildingLocation.X] == null)
+            if (gameSetting.Map[buildingLocation.Y, buildingLocation.X] is EmptyBuilding)
                 contextMenuStrip.Items.Add(CreateAddBuildingMenuItem(buildingLocation));
             else
             {
@@ -156,8 +152,14 @@ namespace GoldenCity.Forms
         {
             if (gameSetting.IsGameFinished)
             {
-                StopTimers();
-                mainForm.ShowFinishedControl();
+                var timer = new Timer{Interval = 2000};
+                timer.Tick += (s, e) =>
+                {
+                    mainForm.ShowFinishedControl();
+                    StopTimers();
+                    timer.Stop();
+                };
+                timer.Start();
             }
         }
         
@@ -179,7 +181,7 @@ namespace GoldenCity.Forms
             for (var i = 0; i < MapSize * MapSize; i++)
             {
                 var point = new Point(BitmapSize * (i % MapSize), BitmapSize * (i / MapSize) + GamePropertiesBarHeight);
-                graphics.DrawImage(bitmaps["Background.png"], point);
+                graphics.DrawImage(mainForm.Bitmaps["Background.png"], point);
                 graphics.DrawRectangle(new Pen(Color.Sienna, BorderLineWidth), new Rectangle(point, new Size(BitmapSize, BitmapSize)));
             }
         }
@@ -193,37 +195,37 @@ namespace GoldenCity.Forms
                 switch (building)
                 {
                     case Jail:
-                        graphics.DrawImage(bitmaps["Jail.png"], point);
+                        graphics.DrawImage(mainForm.Bitmaps["Jail.png"], point);
                         break;
                     case LivingHouse:
-                        graphics.DrawImage(bitmaps["LivingHouse.png"], point);
+                        graphics.DrawImage(mainForm.Bitmaps["LivingHouse.png"], point);
                         break;
                     case RailroadStation:
-                        graphics.DrawImage(bitmaps["RailroadStation.png"], point);
+                        graphics.DrawImage(mainForm.Bitmaps["RailroadStation.png"], point);
                         break;
                     case Saloon:
-                        graphics.DrawImage(bitmaps["Saloon.png"], point);
+                        graphics.DrawImage(mainForm.Bitmaps["Saloon.png"], point);
                         break;
                     case SheriffsHouse:
-                        graphics.DrawImage(bitmaps["SheriffsHouse.png"], point);
+                        graphics.DrawImage(mainForm.Bitmaps["SheriffsHouse.png"], point);
                         break;
                     case Store:
-                        graphics.DrawImage(bitmaps["Store.png"], point);
+                        graphics.DrawImage(mainForm.Bitmaps["Store.png"], point);
                         break;
                     case TownHall:
-                        graphics.DrawImage(bitmaps["TownHall.png"], point);
+                        graphics.DrawImage(mainForm.Bitmaps["TownHall.png"], point);
                         break;
                 }
                 counter++;
             }
         }
         
-        private void DrawBandits(Graphics graphics) //todo
+        private void DrawBandits(Graphics graphics) //todo todo todo todo todo todo 
         {
             foreach (var building in gameSetting.BuildingsToRaid.Where(b => b != null))
             {
                 var point = new Point(building.X * BitmapSize, building.Y * BitmapSize + GamePropertiesBarHeight);
-                graphics.DrawImage(bitmaps["Bandit.png"], point);
+                graphics.DrawImage(mainForm.Bitmaps["Bandit.png"], point);
             }
         }
 
@@ -283,14 +285,6 @@ namespace GoldenCity.Forms
             Controls[2].Text = $"Citiziens Limit: {gameSetting.CitizensLimit}";
             Controls[3].Text = $"Sheriffs: {gameSetting.SheriffsCount}";
             Controls[4].Text = $"Attack timer: {gameSetting.AttackTimerInterval / 1000} sec";
-        }
-
-        private void TakeBitmapsFromDirectory(DirectoryInfo imagesDirectoryInfo)
-        {
-            foreach (var fileInfo in imagesDirectoryInfo.GetFiles("*.png"))
-            {
-                bitmaps[fileInfo.Name] = (Bitmap) Image.FromFile(fileInfo.FullName);
-            }
         }
     }
 }

@@ -18,7 +18,7 @@ namespace GoldenCity.Forms
             {
                 Size = new Size(ClientSize.Width / 3, ClientSize.Height / 3),
                 Location = new Point(ClientSize.Width / 3, ClientSize.Height / 3),
-                Text = "CONGRATS!!! \n\n\n Press to return to Menu"
+                Text = "CONGRATS!!! \n YOU WON! \n\n Press to quit to menu"
             };
             button.Click += HandleClick;
             Controls.Add(button);

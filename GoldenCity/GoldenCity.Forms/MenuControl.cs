@@ -13,19 +13,47 @@ namespace GoldenCity.Forms
             InitializeComponent();
             this.mainForm = mainForm;
             ClientSize = mainForm.ClientSize;
-            var button = new Button
+            
+            var startGameButton = new Button
             {
-                Size = new Size(ClientSize.Width / 3, ClientSize.Height / 3),
-                Location = new Point(ClientSize.Width / 3, ClientSize.Height / 3),
+                Size = mainForm.ButtonSize,
+                Location = new Point(ClientSize.Width / 4, ClientSize.Height / 5),
                 Text = "Start game"
             };
-            button.Click += HandleClick;
-            Controls.Add(button);
+            startGameButton.Click += StartGameButtonHandleClick;
+
+            var guideButton = new Button
+            {
+                Size = mainForm.ButtonSize,
+                Location = new Point(startGameButton.Location.X, startGameButton.Location.Y + startGameButton.Size.Height),
+                Text = "Game guide"
+            };
+            guideButton.Click += GuideButtonHandleClick;
+            
+            var buildingsParametersButton = new Button
+            {
+                Size = mainForm.ButtonSize,
+                Location = new Point(guideButton.Location.X, guideButton.Location.Y + guideButton.Size.Height),
+                Text = "Buildings parameters"
+            };
+            buildingsParametersButton.Click += BuildingsParametersButtonHandleClick;
+
+            Controls.AddRange(new Control[] {startGameButton, guideButton, buildingsParametersButton});
         }
 
-        private void HandleClick(object sender, EventArgs e)
+        private void StartGameButtonHandleClick(object sender, EventArgs e)
         {
             mainForm.ShowGameControl();
+        }
+
+        private void GuideButtonHandleClick(object sender, EventArgs e)
+        {
+            mainForm.ShowGuideControl();
+        }
+
+        private void BuildingsParametersButtonHandleClick(object sender, EventArgs e)
+        {
+            mainForm.ShowBuildingParametersControl();
         }
     }
 }

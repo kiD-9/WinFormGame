@@ -20,6 +20,21 @@
       <Compile Update="FinishedControl.cs">
         <SubType>UserControl</SubType>
       </Compile>
+      <Compile Update="GuideControl.cs">
+        <SubType>UserControl</SubType>
+      </Compile>
+      <Compile Update="GameGuideControl.cs">
+        <SubType>UserControl</SubType>
+      </Compile>
+      <Compile Update="BuildingGuideControl.cs">
+        <SubType>UserControl</SubType>
+      </Compile>
+      <Compile Update="BanditsGuideControl.cs">
+        <SubType>UserControl</SubType>
+      </Compile>
+      <Compile Update="BuildingsParametersControl.cs">
+        <SubType>Form</SubType>
+      </Compile>
     </ItemGroup>
 
 </Project>

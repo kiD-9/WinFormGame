@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -21,7 +23,8 @@ namespace GoldenCity.Forms
             Application.ThreadException += Application_ThreadException;
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
 
-            Application.Run(new MainForm());
+            var mainForm = new MainForm {Text = "Golden City"};
+            Application.Run(mainForm);
         }
         
         private static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
