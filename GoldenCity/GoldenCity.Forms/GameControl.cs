@@ -47,7 +47,7 @@ namespace GoldenCity.Forms
                 BackColor = Color.Chocolate
             };
 
-            if (gameSetting.Map[buildingLocation.Y, buildingLocation.X] is EmptyBuilding)
+            if (gameSetting.Map[buildingLocation.Y, buildingLocation.X] == null)
                 contextMenuStrip.Items.Add(CreateAddBuildingMenuItem(buildingLocation));
             else
             {
