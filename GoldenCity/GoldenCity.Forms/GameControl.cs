@@ -8,11 +8,9 @@ namespace GoldenCity.Forms
 {
     public partial class GameControl : UserControl
     {
-        public const int BitmapSize = 120;
         public const int GamePropertiesBarHeight = 40;
         private readonly MainForm mainForm;
         private const int BorderLineWidth = 8;
-        private const int MapSize = 5;
         private GameSetting gameSetting;
         
         public GameControl(MainForm mainForm)
@@ -21,11 +19,14 @@ namespace GoldenCity.Forms
             InitializeComponent();
             this.mainForm = mainForm;
             ClientSize = mainForm.ClientSize;
-            
+
             gameSetting = new GameSetting(MapSize, 15000);
             AddPropertiesControls();
             Click += HandleClick;
         }
+        
+        private int MapSize => mainForm.MapSize;
+        private int BitmapSize => MainForm.BitmapSize;
 
         public void StartGame()
         {
@@ -47,7 +48,7 @@ namespace GoldenCity.Forms
                 BackColor = Color.Chocolate
             };
 
-            if (gameSetting.Map[buildingLocation.Y, buildingLocation.X] == null)
+            if (gameSetting.IsEmpty(buildingLocation))
                 contextMenuStrip.Items.Add(CreateAddBuildingMenuItem(buildingLocation));
             else
             {
@@ -125,7 +126,7 @@ namespace GoldenCity.Forms
             {
                 BackColor = Color.Chocolate
             };
-            var toolStripMenuItemTownHall = new ToolStripMenuItem("Town hall - 100.000 $", null,
+            var toolStripMenuItemTownHall = new ToolStripMenuItem("Town hall - 150.000 $", null,
                 (o, args) =>
                 {
                     gameSetting.AddBuilding(new TownHall(buildingLocation.X, buildingLocation.Y));
@@ -220,7 +221,7 @@ namespace GoldenCity.Forms
             }
         }
         
-        private void DrawBandits(Graphics graphics) //todo todo todo todo todo todo 
+        private void DrawBandits(Graphics graphics)
         {
             foreach (var building in gameSetting.BuildingsToRaid.Where(b => b != null))
             {
@@ -239,19 +240,19 @@ namespace GoldenCity.Forms
                 BackColor = Color.Chocolate
             };
 
-            var citiziensCountLabel = new Label
+            var citizensCountLabel = new Label
             {
                 Location = new Point(ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
-                Text = $"Citiziens: {gameSetting.CitizensCount}",
+                Text = $"Citizens: {gameSetting.CitizensCount}",
                 BackColor = Color.Chocolate
             };
 
-            var citiziensLimitLabel = new Label
+            var citizensLimitLabel = new Label
             {
                 Location = new Point(2 * ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
-                Text = $"Citiziens Limit: {gameSetting.CitizensLimit}",
+                Text = $"Citizens Limit: {gameSetting.CitizensLimit}",
                 BackColor = Color.Chocolate
             };
 
@@ -267,22 +268,24 @@ namespace GoldenCity.Forms
             {
                 Location = new Point(4 * ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
-                Text = $"Attack timer: {gameSetting.AttackTimerInterval / 1000} sec", // можно попробовать сделать динамически меняющимся
+                Text = $"Attack timer: {gameSetting.AttackTimerInterval / 1000} sec",
                 BackColor = Color.Chocolate
             };
-            
-            Controls.Add(moneyLabel);
-            Controls.Add(citiziensCountLabel);
-            Controls.Add(citiziensLimitLabel);
-            Controls.Add(sheriffsCountLabel);
-            Controls.Add(attackTimerLabel);
+            var backgroundLabel = new Label
+            {
+                Location = Point.Empty, Size = new Size(ClientSize.Width, GamePropertiesBarHeight),
+                BackColor = Color.Chocolate
+            };
+
+            Controls.AddRange(new Control[]
+                {moneyLabel, citizensCountLabel, citizensLimitLabel, sheriffsCountLabel, attackTimerLabel, backgroundLabel});
         }
 
         private void UpdateGamePropertiesValues()
         {
             Controls[0].Text = $"Money: {gameSetting.Money} $";
-            Controls[1].Text = $"Citiziens: {gameSetting.CitizensCount}";
-            Controls[2].Text = $"Citiziens Limit: {gameSetting.CitizensLimit}";
+            Controls[1].Text = $"Citizens: {gameSetting.CitizensCount}";
+            Controls[2].Text = $"Citizens Limit: {gameSetting.CitizensLimit}";
             Controls[3].Text = $"Sheriffs: {gameSetting.SheriffsCount}";
             Controls[4].Text = $"Attack timer: {gameSetting.AttackTimerInterval / 1000} sec";
         }

@@ -4,9 +4,6 @@ namespace GoldenCity.Models
 {
     public class Building
     {
-        public readonly int X;
-        public readonly int Y;
-
         public Building(int x, int y) 
         {
             WorkerId = -1;
@@ -14,6 +11,8 @@ namespace GoldenCity.Models
             Y = y;
         }
 
+        public int X { get; }
+        public int Y { get; }
         public int Happiness { get; protected set; }
         public int WorkerId { get; private set; }
         public int BudgetWeakness { get; protected set; }

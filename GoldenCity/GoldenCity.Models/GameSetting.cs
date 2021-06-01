@@ -19,9 +19,10 @@ namespace GoldenCity.Models
         public GameSetting(int mapSize, int startMoney = 500, bool isTest = false)
         {
             Map = new Building[mapSize, mapSize];
+            MapSize = mapSize;
 
-            attackTimerInterval = 10000; //ms //TODO balance timers
-            attackTimerIntervalIncrease = 1000; //ms
+            attackTimerInterval = 15000; //ms //TODO balance timers
+            attackTimerIntervalIncrease = 2500; //ms
             NewCitizenTimerInterval = 5000; //ms
             Money = startMoney + 500; // -500 money on next step
 
@@ -36,6 +37,7 @@ namespace GoldenCity.Models
         }
 
         public Building[,] Map { get; }
+        public int MapSize { get; }
         public List<Building> BuildingsToRaid { get; private set; }
         public int Money { get; private set; }
         public int NewCitizenTimerInterval { get; private set; }
@@ -54,7 +56,7 @@ namespace GoldenCity.Models
 
             if (building is TownHall)
             {
-                if (CitizensCount < 40)
+                if (CitizensCount < MapSize * 8)
                     throw new Exception("To build town hall you need more than 40 livers");
                 IsGameFinished = true;
             }
@@ -79,7 +81,8 @@ namespace GoldenCity.Models
                     ChangeCitizensLimit(-LivingHouse.LivingPlaces);
                     for (var i = 0; i < LivingHouse.LivingPlaces; i++)
                     {
-                        DeleteCitizen(livingHouse[i]);
+                        if (livingHouse[i] >= 0)
+                            DeleteCitizen(livingHouse[i]);
                     }
                     livingHouse.DeleteBuilding();
                     break;
@@ -88,7 +91,7 @@ namespace GoldenCity.Models
                     building.DeleteBuilding();
                     break;
             }
-            
+
             Map[y, x] = null;
         }
 
@@ -128,8 +131,8 @@ namespace GoldenCity.Models
                     break;
                 
                 case SheriffsHouse sheriffsHouse:
-                    if (SheriffsCount == 2)
-                        throw new Exception("Can't be more than 2 sheriffs");
+                    if (SheriffsCount == MapSize / 2)
+                        throw new Exception($"Can't be more than {MapSize - SheriffsCount} sheriffs");
                     sheriffsHouse.AddWorker(id);
                     SheriffsCount++;
                     break;
@@ -169,43 +172,18 @@ namespace GoldenCity.Models
                     break;
             }
         }
-
-        private void ChangeCitizensLimit(int deltaL)
-        {
-            CitizensLimit += deltaL;
-        }
-        
-        public void ChangeMoney(int deltaM)
-        {
-            Money += deltaM;
-            if (Money < 0)
-                Money = 0;
-        }
-
-        private void ChangeIncomeMoney(int deltaM)
-        {
-            incomeMoney += deltaM;
-        }
-        
-        public void PayDay()
-        {
-            ChangeMoney(incomeMoney);
-        }
-
-        private void ChangeHappiness(int happiness)
-        {
-            if (NewCitizenTimerInterval - happiness * 500 >= 2500)
-                NewCitizenTimerInterval -= happiness * 500; //ms
-            else
-                NewCitizenTimerInterval = 2500;
-        }
         
         public void Attack()
         {
+            
             var bandits = new Bandits(this);
             bandits.FindBuildingsToRaid();
             BuildingsToRaid = bandits.BuildingsToRaid.ToList();
             bandits.Raid();
+            // var bandits = new Bandits(this);
+            // bandits.FindPathForRaid();
+            // BuildingsToRaid = bandits.BuildingsToRaid;
+            // bandits.Raid();
         }
         
         public void AddCitizen()
@@ -226,14 +204,40 @@ namespace GoldenCity.Models
             newCitizenId++;
         }
         
-        private bool CanBecomeWorker(int id)
+        public void ChangeMoney(int deltaM)
         {
-            return IsCitizen(id) && !IsWorker(id);
+            Money += deltaM;
+            if (Money < 0)
+                Money = 0;
         }
 
-        private bool IsWorker(int id)
+        public void PayDay() 
+            => ChangeMoney(incomeMoney);
+
+        public bool IsInsideMap(Point point)
+            => point.X < MapSize && point.X >= 0 && point.Y < MapSize && point.Y >= 0;
+
+        public bool IsEmpty(Point point)
+            => Map[point.Y, point.X] == null;
+
+        private void ChangeHappiness(int happiness)
         {
-            return IsCitizen(id) && workingCitizens.ContainsKey(id);
+            if (NewCitizenTimerInterval - happiness * 500 >= 2500)
+                NewCitizenTimerInterval -= happiness * 500; //ms
+            else
+                NewCitizenTimerInterval = 2500;
         }
+
+        private void ChangeCitizensLimit(int deltaL) 
+            => CitizensLimit += deltaL;
+
+        private void ChangeIncomeMoney(int deltaM) 
+            => incomeMoney += deltaM;
+
+        private bool CanBecomeWorker(int id) 
+            => IsCitizen(id) && !IsWorker(id);
+
+        private bool IsWorker(int id) 
+            => IsCitizen(id) && workingCitizens.ContainsKey(id);
     }
 }

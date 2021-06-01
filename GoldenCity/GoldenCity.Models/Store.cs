@@ -5,7 +5,7 @@
         public Store(int x, int y) : base(x, y)
         {
             Happiness = 2;
-            BudgetWeakness = 15;
+            BudgetWeakness = 10;
             IncomeMoney = 1500;
             Cost = 3000;
         }

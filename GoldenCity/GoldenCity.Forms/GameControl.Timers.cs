@@ -53,7 +53,7 @@ namespace GoldenCity.Forms
 
         private void GameAttackTimerTick(object sender, EventArgs e)
         {
-            gameSetting.Attack(); //TODO rework bandits' path
+            gameSetting.Attack();
             banditsDrawingTimerInterval = 1500;
             gameAttackTimer.Interval = gameSetting.AttackTimerInterval;
         }

@@ -44,7 +44,7 @@ namespace GoldenCity.Models.Tests
             Assert.AreEqual(0, gameSetting.Money);
             gameSetting.ChangeMoney(100);
             gameSetting.Attack();
-            Assert.AreEqual(70, gameSetting.Money); //70, т.к. store + store = 30 (livingHouse.WorkerId < 0)
+            Assert.AreEqual(80, gameSetting.Money); //80, т.к. store + store = 20 (livingHouse.WorkerId < 0)
             Assert.AreEqual(false, gameCitizens.Any());
             Assert.AreEqual(false, gameWorkingCitizens.Any());
         }

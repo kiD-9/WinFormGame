@@ -8,7 +8,7 @@ namespace GoldenCity.Forms
 {
     public partial class MainForm : Form
     {
-        private const int MapSize = 5;
+        public const int BitmapSize = 120;
         private readonly Panel mainPanel;
         private readonly MenuControl menuControl;
         private readonly GameControl gameControl;
@@ -17,17 +17,18 @@ namespace GoldenCity.Forms
         private readonly BuildingGuideControl buildingGuideControl;
         private readonly BuildingsParametersControl buildingsParametersControl;
         private readonly BanditsGuideControl banditsGuideControl;
+        private readonly SettingsControl settingsControl;
         private readonly FinishedControl finishedControl;
         
-        public MainForm()
+        public MainForm(int mapSize)
         {
             InitializeComponent();
+            StartPosition = FormStartPosition.Manual;
             FormBorderStyle = FormBorderStyle.FixedSingle;
-
-            ClientSize = new Size(MapSize * GameControl.BitmapSize, MapSize * GameControl.BitmapSize + GameControl.GamePropertiesBarHeight);
-            ButtonSize = new Size(ClientSize.Width / 2, ClientSize.Height / 12);
-            
             Bitmaps = TakeBitmapsFromDirectory(new DirectoryInfo("Resources"));
+            MapSize = mapSize;
+            ClientSize = new Size(MapSize * BitmapSize, MapSize * BitmapSize + GameControl.GamePropertiesBarHeight);
+            ButtonSize = new Size(ClientSize.Width / 2, ClientSize.Height / 12);
             
             mainPanel = new Panel {ClientSize = ClientSize};
             Controls.Add(mainPanel);
@@ -38,12 +39,16 @@ namespace GoldenCity.Forms
             buildingGuideControl = new BuildingGuideControl(this);
             buildingsParametersControl = new BuildingsParametersControl(this);
             banditsGuideControl = new BanditsGuideControl(this);
+            settingsControl = new SettingsControl(this);
             finishedControl = new FinishedControl(this);
+            Invalidate();
+            
             ShowMenuControl();
         }
 
+        public int MapSize { get; }
         public Size ButtonSize { get; }
-        public Dictionary<string,Bitmap> Bitmaps { get; }
+        public Dictionary<string, Bitmap> Bitmaps { get; }
 
         public void ShowMenuControl()
         {
@@ -88,10 +93,24 @@ namespace GoldenCity.Forms
             mainPanel.Controls.Add(banditsGuideControl);
         }
         
+        public void ShowSettingsControl()
+        {
+            mainPanel.Controls.Clear();
+            mainPanel.Controls.Add(settingsControl);
+        }
+        
         public void ShowFinishedControl()
         {
             mainPanel.Controls.Clear();
             mainPanel.Controls.Add(finishedControl);
+        }
+
+        public void ChangeGameSize(int size)
+        {
+            var newMainForm = new MainForm(size) {Text = "Golden City"};
+            newMainForm.Closed += (s, args) => this.Close();
+            this.Hide();
+            newMainForm.Show();
         }
         
         public static void Application_ThreadException(ThreadExceptionEventArgs e)
@@ -99,7 +118,7 @@ namespace GoldenCity.Forms
             MessageBox.Show(e.Exception.Message);
         }
         
-        public Dictionary<string, Bitmap> TakeBitmapsFromDirectory(DirectoryInfo imagesDirectoryInfo)
+        private Dictionary<string, Bitmap> TakeBitmapsFromDirectory(DirectoryInfo imagesDirectoryInfo)
         {
             var bitmapsFromDirectory = new Dictionary<string, Bitmap>();
             foreach (var fileInfo in imagesDirectoryInfo.GetFiles("*.png"))

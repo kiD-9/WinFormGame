@@ -23,7 +23,7 @@ namespace GoldenCity.Forms
             Application.ThreadException += Application_ThreadException;
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
 
-            var mainForm = new MainForm {Text = "Golden City"};
+            var mainForm = new MainForm(5) {Text = "Golden City"};
             Application.Run(mainForm);
         }
         

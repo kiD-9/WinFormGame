@@ -174,11 +174,11 @@ namespace GoldenCity.Models.Tests
             gameSetting.PayDay();
             Assert.AreEqual(3000, gameSetting.Money);
             gameSetting.Attack();
-            Assert.AreEqual(2100, gameSetting.Money);
-            Assert.AreEqual(1, gameWorkingCitizens.Count);
+            Assert.AreEqual(2700, gameSetting.Money); //2700, так как максимум атак бандитов (gameSetting.MapSize - gameSetting.SheriffsCount), т.е. 1
+            Assert.AreEqual(2, gameWorkingCitizens.Count);
             Assert.AreEqual(2, gameSetting.Map[1, 1].WorkerId);
-            Assert.AreEqual(2, gameSetting.CitizensCount);
-            for (var i = 2; i < 4; i++)
+            Assert.AreEqual(3, gameSetting.CitizensCount);
+            for (var i = 1; i < 4; i++)
             {
                 Assert.AreEqual(i, (gameSetting.Map[0, 0] as LivingHouse)[i]);
             }
