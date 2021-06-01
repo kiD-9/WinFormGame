@@ -22,7 +22,7 @@ namespace GoldenCity.Models
             MapSize = mapSize;
 
             attackTimerInterval = 15000; //ms //TODO balance timers
-            attackTimerIntervalIncrease = 2500; //ms
+            attackTimerIntervalIncrease = 3000; //ms
             NewCitizenTimerInterval = 5000; //ms
             Money = startMoney + 500; // -500 money on next step
 
@@ -57,7 +57,7 @@ namespace GoldenCity.Models
             if (building is TownHall)
             {
                 if (CitizensCount < MapSize * 8)
-                    throw new Exception("To build town hall you need more than 40 livers");
+                    throw new Exception($"To build town hall you need more than {MapSize * 8} livers");
                 IsGameFinished = true;
             }
             
@@ -132,7 +132,7 @@ namespace GoldenCity.Models
                 
                 case SheriffsHouse sheriffsHouse:
                     if (SheriffsCount == MapSize / 2)
-                        throw new Exception($"Can't be more than {MapSize - SheriffsCount} sheriffs");
+                        throw new Exception($"Can't be more than {MapSize / 2} sheriffs");
                     sheriffsHouse.AddWorker(id);
                     SheriffsCount++;
                     break;

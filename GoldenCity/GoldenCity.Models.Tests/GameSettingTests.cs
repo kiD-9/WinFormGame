@@ -16,7 +16,7 @@ namespace GoldenCity.Models.Tests
         [SetUp]
         public void Setup()
         {
-            gameSetting = new GameSetting(2, 4000, true);
+            gameSetting = new GameSetting(3, 4000, true);
             var fieldInfo = typeof(GameSetting).GetField("citizens", BindingFlags.NonPublic | BindingFlags.Instance);
             if (fieldInfo == null)
                 throw new NullReferenceException();
@@ -136,8 +136,22 @@ namespace GoldenCity.Models.Tests
             gameSetting.AddWorker(gameSetting.Map[1, 0]);
             Assert.AreEqual(0, gameSetting.Map[1, 0].WorkerId);
             Assert.AreEqual(1, gameSetting.SheriffsCount);
+            var bandits = new Bandits(gameSetting);
+            Assert.AreEqual(2, bandits.BuildingsToRaid.Length);
         }
 
+        [Test]
+        public void CheckAddJail()
+        {
+            gameSetting.AddCitizen();
+            gameSetting.AddCitizen();
+            gameSetting.AddBuilding(new Jail(0, 1));
+            Assert.AreEqual(15, gameSetting.AttackTimerInterval / 1000);
+            gameSetting.AddWorker(gameSetting.Map[1, 0]);
+            Assert.AreEqual(0, gameSetting.Map[1, 0].WorkerId);
+            Assert.AreEqual(18, gameSetting.AttackTimerInterval / 1000);
+        }
+        
         [Test]
         public void CheckPayday()
         {
@@ -174,14 +188,44 @@ namespace GoldenCity.Models.Tests
             gameSetting.PayDay();
             Assert.AreEqual(3000, gameSetting.Money);
             gameSetting.Attack();
-            Assert.AreEqual(2700, gameSetting.Money); //2700, так как максимум атак бандитов (gameSetting.MapSize - gameSetting.SheriffsCount), т.е. 1
-            Assert.AreEqual(2, gameWorkingCitizens.Count);
+            Assert.AreEqual(2400, gameSetting.Money); //2400, так как максимум атак бандитов (gameSetting.MapSize - gameSetting.SheriffsCount), т.е. 2
+            Assert.AreEqual(1, gameWorkingCitizens.Count);
             Assert.AreEqual(2, gameSetting.Map[1, 1].WorkerId);
-            Assert.AreEqual(3, gameSetting.CitizensCount);
-            for (var i = 1; i < 4; i++)
+            Assert.AreEqual(2, gameSetting.CitizensCount);
+            for (var i = 2; i < 4; i++)
             {
                 Assert.AreEqual(i, (gameSetting.Map[0, 0] as LivingHouse)[i]);
             }
+        }
+
+        [Test]
+        public void CheckWin()
+        {
+            gameSetting.DeleteBuilding(0, 0);
+            
+            var ex = Assert.Throws<Exception>(() => gameSetting.AddBuilding(new TownHall(0, 1)));
+            Assert.That(ex.Message, Is.EqualTo("Not enough money to build"));
+            Assert.AreEqual(4000, gameSetting.Money);
+            Assert.AreEqual(false, gameSetting.IsGameFinished);
+            gameSetting.ChangeMoney(146000);
+            Assert.AreEqual(150000, gameSetting.Money);
+            
+            ex = Assert.Throws<Exception>(() => gameSetting.AddBuilding(new TownHall(0, 1)));
+            Assert.That(ex.Message, Is.EqualTo("To build town hall you need more than 24 livers"));
+            Assert.AreEqual(false, gameSetting.IsGameFinished);
+            gameSetting.ChangeMoney(3000);
+            for (var i = 0; i < 6; i++)
+            {
+                gameSetting.AddBuilding(new LivingHouse(i % gameSetting.MapSize, i / gameSetting.MapSize));
+                for (var j = 0; j < LivingHouse.LivingPlaces; j++)
+                    gameSetting.AddCitizen();
+            }
+            
+
+            Assert.AreEqual(150000, gameSetting.Money);
+            gameSetting.AddBuilding(new TownHall(2, 2));
+            Assert.AreEqual(0, gameSetting.Money);
+            Assert.AreEqual(true, gameSetting.IsGameFinished);
         }
     }
 }
