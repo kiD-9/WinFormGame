@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+﻿using System.Linq;
 
 namespace GoldenCity.Models
 {
@@ -53,33 +51,5 @@ namespace GoldenCity.Models
                 }
             }
         }
-        
-        // public PathWithCost BestBanditsPath { get; private set; }
-        // public List<Building> BuildingsToRaid { get; private set; }
-
-        // public void FindPathForRaid()
-        // {
-        //     var dijkstraPathFinder = new DijkstraPathFinder();
-        //     var exit = new Point(gameSetting.MapSize - 1, gameSetting.MapSize - 1);
-        //     BestBanditsPath = DijkstraPathFinder.GetPathsByDijkstra(gameSetting, Point.Empty, new[] {exit})
-        //         .FirstOrDefault();
-        // }
-        //
-        // public void Raid()
-        // {
-        //     BuildingsToRaid = BestBanditsPath.Path
-        //         .Where(p => !gameSetting.IsEmpty(p))
-        //         .Select(point => gameSetting.Map[point.Y, point.X])
-        //         .ToList();
-        //     
-        //     var budgetToRob = BuildingsToRaid.Where(b => b != null && b.WorkerId >= 0).Sum(b => b.BudgetWeakness) 
-        //         * gameSetting.Money / 100;
-        //     
-        //     gameSetting.ChangeMoney(-budgetToRob);
-        //     foreach (var building in BuildingsToRaid.Where(b => b != null))
-        //     {
-        //         gameSetting.DeleteCitizen(building.WorkerId);
-        //     }
-        // }
     }
 }

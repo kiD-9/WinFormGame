@@ -53,20 +53,23 @@ namespace GoldenCity.Models.Tests
         }
 
         [Test]
-        public void NoCitiziensWhenCreated()
+        public void NoCitizensWhenCreated()
         {
             Assert.AreEqual(new Dictionary<int, (int, int)>(), gameCitizens);
         }
 
         [Test]
-        public void AddCitiziens()
+        public void AddCitizens()
         {
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
                 gameSetting.AddCitizen();
             }
 
-            Assert.AreEqual(false, (gameSetting.Map[0, 0] as LivingHouse).HavePlace);
+            if (!(gameSetting.Map[0, 0] is LivingHouse livingHouse))
+                throw new NullReferenceException();
+            Assert.AreEqual(false, livingHouse.HavePlace);
+            
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
                 Assert.AreEqual((0, 0), gameCitizens[i]);
@@ -87,7 +90,7 @@ namespace GoldenCity.Models.Tests
         }
         
         [Test]
-        public void AddLivingHouse_AddMoreCitiziens()
+        public void AddLivingHouse_AddMoreCitizens()
         {
             gameSetting.AddBuilding(new LivingHouse(0, 1));
             Assert.AreEqual(3500, gameSetting.Money);
@@ -97,8 +100,14 @@ namespace GoldenCity.Models.Tests
                 gameSetting.AddCitizen();
             }
 
-            Assert.AreEqual(false, (gameSetting.Map[0, 0] as LivingHouse).HavePlace);
-            Assert.AreEqual(false, (gameSetting.Map[1, 0] as LivingHouse).HavePlace);
+            if (!(gameSetting.Map[0, 0] is LivingHouse firstLivingHouse))
+                throw new NullReferenceException();
+            if (!(gameSetting.Map[1, 0] is LivingHouse secondLivingHouse))
+                throw new NullReferenceException();
+            
+            Assert.AreEqual(false, firstLivingHouse.HavePlace);
+            Assert.AreEqual(false, secondLivingHouse.HavePlace);
+            
             for (var i = 0; i < LivingHouse.LivingPlaces; i++)
             {
                 Assert.AreEqual((0, 0), gameCitizens[i]);
@@ -188,13 +197,16 @@ namespace GoldenCity.Models.Tests
             gameSetting.PayDay();
             Assert.AreEqual(3000, gameSetting.Money);
             gameSetting.Attack();
-            Assert.AreEqual(2400, gameSetting.Money); //2400, так как максимум атак бандитов (gameSetting.MapSize - gameSetting.SheriffsCount), т.е. 2
+            Assert.AreEqual(2400, gameSetting.Money); //2400, because (gameSetting.MapSize - gameSetting.SheriffsCount) == 2
             Assert.AreEqual(1, gameWorkingCitizens.Count);
             Assert.AreEqual(2, gameSetting.Map[1, 1].WorkerId);
             Assert.AreEqual(2, gameSetting.CitizensCount);
+            
+            if (!(gameSetting.Map[0, 0] is LivingHouse livingHouse))
+                throw new NullReferenceException();
             for (var i = 2; i < 4; i++)
             {
-                Assert.AreEqual(i, (gameSetting.Map[0, 0] as LivingHouse)[i]);
+                Assert.AreEqual(i, livingHouse[i]);
             }
         }
 

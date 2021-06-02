@@ -117,6 +117,8 @@ namespace GoldenCity.Models.Tests
             if (fieldInfo == null)
                 throw new NullReferenceException();
             gameWorkingCitizens = (Dictionary<int, (int, int)>) fieldInfo.GetValue(gameSetting);
+            if (gameCitizens == null || gameWorkingCitizens == null)
+                throw new NullReferenceException();
             
             
             gameSetting.DeleteBuilding(0, 0);

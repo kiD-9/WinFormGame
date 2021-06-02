@@ -147,7 +147,7 @@ namespace GoldenCity.Models
         public void RetireWorker(int id)
         {
             if (!IsWorker(id))
-                return; //isn't worker
+                return;
 
             var workingPlace = Map[workingCitizens[id].Item2, workingCitizens[id].Item1];
             ChangeHappiness(-workingPlace.Happiness);
@@ -177,7 +177,6 @@ namespace GoldenCity.Models
             
             var bandits = new Bandits(this);
             bandits.FindBuildingsToRaid();
-            // bandits.FindPathForRaid();
             BuildingsToRaid = bandits.BuildingsToRaid.ToList();
             bandits.Raid();
         }
@@ -209,9 +208,6 @@ namespace GoldenCity.Models
 
         public void PayDay() 
             => ChangeMoney(incomeMoney);
-
-        public bool IsInsideMap(Point point)
-            => point.X < MapSize && point.X >= 0 && point.Y < MapSize && point.Y >= 0;
 
         public bool IsEmpty(Point point)
             => Map[point.Y, point.X] == null;
