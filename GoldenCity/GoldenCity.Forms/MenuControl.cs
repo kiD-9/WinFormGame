@@ -22,6 +22,16 @@ namespace GoldenCity.Forms
             };
             startGameButton.Click += (s, e) => mainForm.ShowGameControl();
 
+            var gameName = new Label
+            {
+                Size = mainForm.ButtonSize,
+                Location = new Point(ClientSize.Width / 4, startGameButton.Location.Y - mainForm.ButtonSize.Height),
+                BackColor = Color.Transparent,
+                Text = "GOLDEN CITY",
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Arial", 24, FontStyle.Bold)
+            };
+
             var guideButton = new Button
             {
                 Size = mainForm.ButtonSize,
@@ -51,8 +61,19 @@ namespace GoldenCity.Forms
                 Text = "Game settings"
             };
             settingsButton.Click += (s, e) => mainForm.ShowSettingsControl();
+            
+            var exitButton = new Button
+            {
+                Size = mainForm.ButtonSize,
+                Location = new Point(ClientSize.Width / 4, ClientSize.Height - ClientSize.Height / 5),
+                BackColor = Color.Chocolate,
+                FlatStyle = FlatStyle.Flat,
+                Text = "Exit"
+            };
+            exitButton.Click += (s, e) => mainForm.Close();
 
-            Controls.AddRange(new Control[] {startGameButton, guideButton, buildingsParametersButton, settingsButton});
+            Controls.AddRange(new Control[]
+                {gameName, startGameButton, guideButton, buildingsParametersButton, settingsButton, exitButton});
         }
     }
 }

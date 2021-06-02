@@ -236,7 +236,7 @@ namespace GoldenCity.Forms
             {
                 Location = new Point(0, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
-                Text = $"Money: {gameSetting.Money} $",
+                Text = $"Money:\n{gameSetting.Money} $",
                 BackColor = Color.Chocolate
             };
 
@@ -244,7 +244,7 @@ namespace GoldenCity.Forms
             {
                 Location = new Point(ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
-                Text = $"Citizens: {gameSetting.CitizensCount}",
+                Text = $"Citizens:\n{gameSetting.CitizensCount}",
                 BackColor = Color.Chocolate
             };
 
@@ -252,7 +252,7 @@ namespace GoldenCity.Forms
             {
                 Location = new Point(2 * ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
-                Text = $"Citizens Limit: {gameSetting.CitizensLimit}",
+                Text = $"Citizens Limit:\n{gameSetting.CitizensLimit}",
                 BackColor = Color.Chocolate
             };
 
@@ -260,7 +260,7 @@ namespace GoldenCity.Forms
             {
                 Location = new Point(3 * ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
-                Text = $"Sheriffs: {gameSetting.SheriffsCount}",
+                Text = $"Sheriffs:\n{gameSetting.SheriffsCount}",
                 BackColor = Color.Chocolate
             };
 
@@ -268,7 +268,7 @@ namespace GoldenCity.Forms
             {
                 Location = new Point(4 * ClientSize.Width / MapSize, 0),
                 Size = new Size(ClientSize.Width / MapSize, GamePropertiesBarHeight),
-                Text = $"Attack timer: {gameSetting.AttackTimerInterval / 1000} sec",
+                Text = $"Attack timer:\n{gameSetting.AttackTimerInterval / 1000} sec",
                 BackColor = Color.Chocolate
             };
             var backgroundLabel = new Label
@@ -283,11 +283,11 @@ namespace GoldenCity.Forms
 
         private void UpdateGamePropertiesValues()
         {
-            Controls[0].Text = $"Money: {gameSetting.Money} $";
-            Controls[1].Text = $"Citizens: {gameSetting.CitizensCount}";
-            Controls[2].Text = $"Citizens Limit: {gameSetting.CitizensLimit}";
-            Controls[3].Text = $"Sheriffs: {gameSetting.SheriffsCount}";
-            Controls[4].Text = $"Attack timer: {gameSetting.AttackTimerInterval / 1000} sec";
+            Controls[0].Text = $"Money:\n{gameSetting.Money} $";
+            Controls[1].Text = $"Citizens:\n{gameSetting.CitizensCount}";
+            Controls[2].Text = $"Citizens Limit:\n{gameSetting.CitizensLimit}";
+            Controls[3].Text = $"Sheriffs:\n{gameSetting.SheriffsCount}";
+            Controls[4].Text = $"Attack timer:\n{gameSetting.AttackTimerInterval / 1000} sec";
         }
     }
 }
