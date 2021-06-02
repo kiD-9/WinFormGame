@@ -7,7 +7,7 @@ namespace GoldenCity.Models
 {
     public class GameSetting
     {
-        public const int PayTimerInterval = 4500; // ms //TODO
+        public const int PayTimerInterval = 4500; // ms
         private readonly Dictionary<int, (int,int)> citizens;
         private readonly Dictionary<int, (int,int)> workingCitizens;
         private int incomeMoney;
@@ -21,7 +21,7 @@ namespace GoldenCity.Models
             Map = new Building[mapSize, mapSize];
             MapSize = mapSize;
 
-            attackTimerInterval = 15000; //ms //TODO balance timers
+            attackTimerInterval = 15000; //ms
             attackTimerIntervalIncrease = 3000; //ms
             NewCitizenTimerInterval = 5000; //ms
             Money = startMoney + 500; // -500 money on next step
@@ -40,7 +40,7 @@ namespace GoldenCity.Models
         public int MapSize { get; }
         public List<Building> BuildingsToRaid { get; private set; }
         public int Money { get; private set; }
-        public int NewCitizenTimerInterval { get; private set; }
+        public int NewCitizenTimerInterval { get; private set; } //ms
         public int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncrease; //ms
         public int SheriffsCount { get; private set; }
         public int CitizensLimit { get; private set; }
@@ -178,12 +178,9 @@ namespace GoldenCity.Models
             
             var bandits = new Bandits(this);
             bandits.FindBuildingsToRaid();
+            // bandits.FindPathForRaid();
             BuildingsToRaid = bandits.BuildingsToRaid.ToList();
             bandits.Raid();
-            // var bandits = new Bandits(this);
-            // bandits.FindPathForRaid();
-            // BuildingsToRaid = bandits.BuildingsToRaid;
-            // bandits.Raid();
         }
         
         public void AddCitizen()
