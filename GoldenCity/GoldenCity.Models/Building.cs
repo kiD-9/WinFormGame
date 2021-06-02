@@ -29,14 +29,10 @@ namespace GoldenCity.Models
             WorkerId = id;
         }
 
-        public void RemoveWorker()
-        {
-            WorkerId = -1;
-        }
+        public void RemoveWorker() 
+            => WorkerId = -1;
 
         public virtual void DeleteBuilding()
-        {
-            RemoveWorker();
-        }
+            => RemoveWorker();
     }
 }

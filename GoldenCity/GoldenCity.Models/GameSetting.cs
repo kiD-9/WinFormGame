@@ -15,6 +15,7 @@ namespace GoldenCity.Models
         private readonly int attackTimerIntervalIncrease; //ms
         private int newCitizenId;
         private int jailWorkersCount;
+        private int newCitizenTimerInterval;
 
         public GameSetting(int mapSize, int startMoney = 500, bool isTest = false)
         {
@@ -23,7 +24,7 @@ namespace GoldenCity.Models
 
             attackTimerInterval = 15000; //ms
             attackTimerIntervalIncrease = 3000; //ms
-            NewCitizenTimerInterval = 5000; //ms
+            newCitizenTimerInterval = 5000; //ms
             Money = startMoney + 500; // -500 money on next step
 
             AddBuilding(new LivingHouse(0, 0)); // -500 money
@@ -40,7 +41,7 @@ namespace GoldenCity.Models
         public int MapSize { get; }
         public List<Building> BuildingsToRaid { get; private set; }
         public int Money { get; private set; }
-        public int NewCitizenTimerInterval { get; private set; } //ms
+        public int NewCitizenTimerInterval => newCitizenTimerInterval >= 2500 ? newCitizenTimerInterval : 2500; //ms
         public int AttackTimerInterval => attackTimerInterval + jailWorkersCount * attackTimerIntervalIncrease; //ms
         public int SheriffsCount { get; private set; }
         public int CitizensLimit { get; private set; }
@@ -62,7 +63,6 @@ namespace GoldenCity.Models
             }
             
             Map[building.Y, building.X] = building;
-            ChangeHappiness(building.Happiness);
             ChangeMoney(-building.Cost);
             
             if (building is LivingHouse)
@@ -73,7 +73,6 @@ namespace GoldenCity.Models
         {
             var building = Map[y, x];
             RetireWorker(building.WorkerId);
-            ChangeHappiness(-building.Happiness);
             
             switch (building)
             {
@@ -111,10 +110,8 @@ namespace GoldenCity.Models
             citizens.Remove(id);
         }
 
-        public bool IsCitizen(int id)
-        {
-            return citizens.ContainsKey(id);
-        }
+        public bool IsCitizen(int id) 
+            => citizens.ContainsKey(id);
 
         public void AddWorker(Building building)
         {
@@ -142,6 +139,7 @@ namespace GoldenCity.Models
                     break;
             }
             
+            ChangeHappiness(building.Happiness);
             ChangeIncomeMoney(building.IncomeMoney);
             workingCitizens[id] = (building.X, building.Y);
         }
@@ -152,6 +150,7 @@ namespace GoldenCity.Models
                 return; //isn't worker
 
             var workingPlace = Map[workingCitizens[id].Item2, workingCitizens[id].Item1];
+            ChangeHappiness(-workingPlace.Happiness);
             ChangeIncomeMoney(-workingPlace.IncomeMoney);
             workingCitizens.Remove(id);
             
@@ -219,10 +218,7 @@ namespace GoldenCity.Models
 
         private void ChangeHappiness(int happiness)
         {
-            if (NewCitizenTimerInterval - happiness * 500 >= 2500)
-                NewCitizenTimerInterval -= happiness * 500; //ms
-            else
-                NewCitizenTimerInterval = 2500;
+            newCitizenTimerInterval -= happiness * 500; //ms
         }
 
         private void ChangeCitizensLimit(int deltaL) 
