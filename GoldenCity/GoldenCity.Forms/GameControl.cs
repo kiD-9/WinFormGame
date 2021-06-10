@@ -189,10 +189,11 @@ namespace GoldenCity.Forms
 
         private void DrawBuildings(Graphics graphics)
         {
-            var counter = 0;
             foreach (var building in gameSetting.Map)
             {
-                var point = new Point(BitmapSize * (counter % MapSize), BitmapSize * (counter / MapSize) + GamePropertiesBarHeight);
+                if (building == null)
+                    continue;
+                var point = new Point(building.X * BitmapSize, building.Y * BitmapSize + GamePropertiesBarHeight);
                 switch (building)
                 {
                     case Jail:
@@ -217,7 +218,6 @@ namespace GoldenCity.Forms
                         graphics.DrawImage(mainForm.Bitmaps["TownHall.png"], point);
                         break;
                 }
-                counter++;
             }
         }
         

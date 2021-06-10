@@ -5,13 +5,10 @@ namespace GoldenCity.Forms
 {
     public partial class SettingsControl : UserControl
     {
-        private readonly MainForm mainForm;
-        
         public SettingsControl(MainForm mainForm)
         {
             DoubleBuffered = true;
             InitializeComponent();
-            this.mainForm = mainForm;
             ClientSize = mainForm.ClientSize;
             BackgroundImage = mainForm.Bitmaps["Background.png"];
             
